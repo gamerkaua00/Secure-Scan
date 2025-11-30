@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SecureScan | Multi-Layer Analysis</title>
     
+    <!-- Meta Tags para PWA e Mobile -->
+    <meta name="theme-color" content="#0b1121">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SecureScan">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip para ler arquivos dentro de ZIP/APK/DOCX -->
@@ -14,12 +20,58 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Ícone e Manifesto PWA (Gerados Dinamicamente para funcionar em arquivo único) -->
+    <script>
+        // Ícone em Base64 (Escudo Azul)
+        const iconBase64 = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEyOCIgcnk9IjEyOCIgZmlsbD0iIzBmMTcyYSIvPjxwYXRoIGZpbGw9IiMzYjgyZjYiIGQ9Ik0yNTYgMzJDMTE0LjYgMzIgMCAxNDYuNiAwIDI4OHMxMTQuNiAyNTYgMjU2IDI1NiAyNTYtMTE0LjYgMjU2LTI1NlMzOTcuNCAzMiAyNTYgMzJ6bTAgNDcyYy0xMTkuMyAwLTIxNi05Ni43LTIxNi0yMTZTMTM2LjcgNzIgMjU2IDcyczIxNiA5Ni43IDIxNiAyMTYtOTYuNyAyMTYtMjE2IDIxNnoiLz48cGF0aCBmaWxsPSIjM2I4MmY2IiBkPSJNMzcyLjQgMjA0LjRMMjI4LjMgMzQ4LjVsLTg4LjctODguN2MtNi4zLTYuMy0xNi40LTYuMy0yMi42IDAtNi4zIDYuMy02LjMgMTYuNCAwIDIyLjZsMTAwIDEwMGM2LjMgNi4zIDE2LjQgNi4zIDIyLjYgMGwxNTUuMy0xNTUuM2M2LjMtNi4zIDYuMy0xNi40IDAtMjIuNi02LjItNi4zLTE2LjQtNi4zLTIyLjUtLjF6Ii8+PC9zdmc+`;
+
+        // Injetar Ícone no Head
+        const linkIcon = document.createElement('link');
+        linkIcon.rel = 'icon';
+        linkIcon.href = iconBase64;
+        document.head.appendChild(linkIcon);
+
+        const linkApple = document.createElement('link');
+        linkApple.rel = 'apple-touch-icon';
+        linkApple.href = iconBase64;
+        document.head.appendChild(linkApple);
+
+        // Criar Manifesto PWA Dinamicamente
+        const manifest = {
+            "name": "SecureScan Antivírus",
+            "short_name": "SecureScan",
+            "description": "Verificador de segurança web client-side.",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#0b1121",
+            "theme_color": "#0b1121",
+            "orientation": "portrait",
+            "icons": [
+                {
+                    "src": iconBase64,
+                    "sizes": "512x512",
+                    "type": "image/svg+xml"
+                }
+            ]
+        };
+
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        
+        const linkManifest = document.createElement('link');
+        linkManifest.rel = 'manifest';
+        linkManifest.href = manifestURL;
+        document.head.appendChild(linkManifest);
+    </script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0b1121;
             color: #e2e8f0;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -70,7 +122,7 @@
 
         /* Tabs Styles */
         .tab-btn {
-            @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors border border-transparent;
+            @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors border border-transparent flex items-center justify-center;
         }
         .tab-active {
             @apply bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-900/50;
@@ -80,15 +132,15 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col pb-safe">
 
     <!-- Navbar -->
-    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 pt-safe">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-shield-halved text-blue-500 text-xl"></i>
-                    <span class="font-bold text-lg tracking-tight text-white">SecureScan <span class="text-[10px] bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded ml-1 border border-blue-500/30">SUITE</span></span>
+                    <span class="font-bold text-lg tracking-tight text-white">SecureScan <span class="text-[10px] bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded ml-1 border border-blue-500/30">APP</span></span>
                 </div>
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
@@ -98,43 +150,42 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center relative">
+    <main class="flex-grow container mx-auto px-4 py-6 flex flex-col items-center relative">
         
         <!-- Tab Switcher -->
-        <div class="flex p-1 space-x-1 bg-slate-900/60 rounded-xl mb-8 border border-slate-800 backdrop-blur-sm z-10">
+        <div class="grid grid-cols-2 p-1 gap-1 bg-slate-900/60 rounded-xl mb-6 border border-slate-800 backdrop-blur-sm z-10 w-full max-w-md">
             <button onclick="switchTab('scanner')" id="btn-tab-scanner" class="tab-btn tab-active">
-                <i class="fa-solid fa-file-magnifying-glass mr-2"></i>Escanear Arquivo
+                <i class="fa-solid fa-file-magnifying-glass mr-2"></i>Escanear
             </button>
             <button onclick="switchTab('device')" id="btn-tab-device" class="tab-btn tab-inactive">
-                <i class="fa-solid fa-laptop-medical mr-2"></i>Auditoria do Sistema
+                <i class="fa-solid fa-mobile-screen-button mr-2"></i>Auditoria
             </button>
         </div>
 
         <!-- VIEW 1: FILE SCANNER -->
-        <div id="view-scanner" class="w-full max-w-4xl flex flex-col items-center">
-            <div class="text-center mb-8 max-w-3xl z-10">
-                <h1 class="font-bold mb-4 text-3xl md:text-5xl text-white">
+        <div id="view-scanner" class="w-full max-w-4xl flex flex-col items-center animate-fade-in">
+            <div class="text-center mb-6 max-w-3xl z-10">
+                <h1 class="font-bold mb-2 text-2xl md:text-4xl text-white">
                     Análise de Arquivos
                 </h1>
-                <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-                    Detecção de <span class="text-blue-400">assinaturas</span>, prevenção de <span class="text-blue-400">spoofing</span> e análise profunda de <span class="font-mono text-xs bg-slate-800 px-1 rounded">.ZIP .APK .DOCX</span>.
+                <p class="text-slate-400 text-xs md:text-sm max-w-xl mx-auto">
+                    Suporte completo a <span class="font-mono text-[10px] bg-slate-800 px-1 rounded text-blue-300">ZIP APK DOCX PDF</span>
                 </p>
             </div>
 
             <!-- Scanner Card -->
-            <div class="w-full glass-panel rounded-xl overflow-hidden relative min-h-[450px] flex flex-col">
+            <div class="w-full glass-panel rounded-xl overflow-hidden relative min-h-[400px] flex flex-col">
                 <!-- Upload State -->
-                <div id="upload-area" class="flex-grow flex flex-col items-center justify-center p-8 transition-all duration-300">
-                    <div class="drop-zone w-full max-w-lg h-64 rounded-xl flex flex-col items-center justify-center cursor-pointer relative group" onclick="document.getElementById('file-input').click()">
+                <div id="upload-area" class="flex-grow flex flex-col items-center justify-center p-6 transition-all duration-300">
+                    <div class="drop-zone w-full max-w-lg h-56 rounded-xl flex flex-col items-center justify-center cursor-pointer relative group" onclick="document.getElementById('file-input').click()">
                         <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this)">
                         
-                        <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 border border-slate-700 shadow-xl shadow-blue-900/10">
-                            <i class="fa-solid fa-magnifying-glass-chart text-3xl text-blue-500"></i>
+                        <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 border border-slate-700 shadow-xl shadow-blue-900/10">
+                            <i class="fa-solid fa-magnifying-glass-chart text-2xl text-blue-500"></i>
                         </div>
-                        <p class="text-xl font-bold text-white mb-2">Carregar Arquivo</p>
-                        <p class="text-xs text-slate-400 text-center max-w-[280px]">
-                            Arraste ou clique. Suporta todos os formatos.<br>
-                            <span class="text-slate-500">Análise estrutural e de conteúdo ativa.</span>
+                        <p class="text-lg font-bold text-white mb-1">Toque para verificar</p>
+                        <p class="text-xs text-slate-400 text-center max-w-[250px]">
+                            Busca executáveis ocultos e scripts maliciosos em documentos e pacotes.
                         </p>
                     </div>
                 </div>
@@ -143,180 +194,148 @@
                 <div id="scanning-area" class="hidden absolute inset-0 bg-slate-900/95 flex flex-col items-center justify-center z-20">
                     <div class="scan-line"></div>
                     
-                    <!-- Steps Visualization -->
-                    <div class="flex items-center gap-2 mb-8">
-                        <div id="step-1" class="w-3 h-3 rounded-full bg-slate-700 transition-colors"></div>
-                        <div class="w-8 h-0.5 bg-slate-800"></div>
-                        <div id="step-2" class="w-3 h-3 rounded-full bg-slate-700 transition-colors"></div>
-                        <div class="w-8 h-0.5 bg-slate-800"></div>
-                        <div id="step-3" class="w-3 h-3 rounded-full bg-slate-700 transition-colors"></div>
-                    </div>
-
-                    <div class="relative w-20 h-20 mb-6">
+                    <div class="relative w-16 h-16 mb-6">
                         <div class="absolute inset-0 border-4 border-slate-700 rounded-full"></div>
                         <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
-                        <i class="fa-solid fa-fingerprint absolute inset-0 flex items-center justify-center text-slate-500 text-2xl"></i>
+                        <i class="fa-solid fa-fingerprint absolute inset-0 flex items-center justify-center text-slate-500 text-xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-1" id="scan-status">Iniciando...</h3>
-                    <p class="text-xs font-mono text-blue-400" id="scan-detail">Preparando ambiente seguro</p>
+                    <h3 class="text-lg font-bold text-white mb-1" id="scan-status">Iniciando...</h3>
+                    <p class="text-xs font-mono text-blue-400" id="scan-detail">Preparando...</p>
                 </div>
 
                 <!-- Result State -->
                 <div id="result-area" class="hidden flex flex-col h-full animate-fade-in">
                     <!-- Header -->
-                    <div class="bg-slate-800/50 p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div class="flex items-center gap-4">
-                            <div id="file-icon-wrapper" class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center text-2xl transition-colors">
+                    <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex items-center gap-3 w-full overflow-hidden">
+                            <div id="file-icon-wrapper" class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-xl transition-colors shrink-0">
                                 <i class="fa-solid fa-file"></i>
                             </div>
-                            <div class="overflow-hidden">
-                                <h2 id="result-filename" class="font-bold text-white text-lg truncate max-w-[200px] md:max-w-sm">arquivo.zip</h2>
-                                <div class="flex items-center gap-3 text-xs">
+                            <div class="overflow-hidden min-w-0">
+                                <h2 id="result-filename" class="font-bold text-white text-base truncate">arquivo.zip</h2>
+                                <div class="flex items-center gap-2 text-[10px]">
                                     <span id="result-size" class="text-slate-400">0 MB</span>
-                                    <span id="file-hash" class="font-mono text-[10px] bg-slate-900 px-2 py-0.5 rounded text-slate-500 truncate max-w-[100px]" title="SHA-256 Hash">HASH...</span>
+                                    <span id="file-hash" class="font-mono bg-slate-900 px-2 py-0.5 rounded text-slate-500 truncate max-w-[80px]">HASH</span>
                                 </div>
                             </div>
                         </div>
-                        
-                        <button onclick="resetScanner()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm transition-colors border border-slate-600 shadow-lg">
-                            <i class="fa-solid fa-rotate-left mr-2"></i> Nova Análise
-                        </button>
                     </div>
 
                     <!-- Painel de Resultados -->
-                    <div class="flex-grow p-6 overflow-y-auto custom-scroll bg-slate-900/30">
+                    <div class="flex-grow p-4 overflow-y-auto custom-scroll bg-slate-900/30">
                         
-                        <!-- 1. Veredito Principal -->
-                        <div id="verdict-panel" class="mb-6 p-4 rounded-xl border flex flex-col sm:flex-row items-start gap-4 transition-all">
+                        <!-- 1. Veredito -->
+                        <div id="verdict-panel" class="mb-4 p-4 rounded-xl border flex flex-col sm:flex-row items-start gap-3 transition-all">
                             <!-- JS Populate -->
                         </div>
 
-                        <!-- 2. Grid de Detalhes -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            
-                            <!-- Verificação de Spoofing -->
-                            <div id="spoof-card" class="bg-slate-800/40 border border-slate-700 p-4 rounded-lg flex items-center gap-3">
-                                <div id="spoof-icon" class="text-slate-500 text-xl"><i class="fa-solid fa-id-card"></i></div>
+                        <!-- 2. Detalhes Rápidos -->
+                        <div class="grid grid-cols-1 gap-3 mb-4">
+                            <div id="spoof-card" class="bg-slate-800/40 border border-slate-700 p-3 rounded-lg flex items-center gap-3">
+                                <div id="spoof-icon" class="text-slate-500 text-lg"><i class="fa-solid fa-id-card"></i></div>
                                 <div>
-                                    <h4 class="text-xs font-bold text-slate-400 uppercase">Integridade Estrutural</h4>
-                                    <p id="spoof-text" class="text-sm text-slate-300">Verificando magic bytes...</p>
+                                    <h4 class="text-[10px] font-bold text-slate-400 uppercase">Integridade</h4>
+                                    <p id="spoof-text" class="text-xs text-slate-300">...</p>
                                 </div>
                             </div>
-
-                            <!-- Verificação de Hash -->
-                            <div id="hash-card" class="bg-slate-800/40 border border-slate-700 p-4 rounded-lg flex items-center gap-3">
-                                <div id="db-icon" class="text-slate-500 text-xl"><i class="fa-solid fa-database"></i></div>
+                            
+                             <div id="db-card" class="bg-slate-800/40 border border-slate-700 p-3 rounded-lg flex items-center gap-3">
+                                <div id="db-icon" class="text-slate-500 text-lg"><i class="fa-solid fa-database"></i></div>
                                 <div>
-                                    <h4 class="text-xs font-bold text-slate-400 uppercase">Banco de Dados Local</h4>
-                                    <p id="db-text" class="text-sm text-slate-300">Hash não consta na lista negra.</p>
+                                    <h4 class="text-[10px] font-bold text-slate-400 uppercase">Base de Ameaças</h4>
+                                    <p id="db-text" class="text-xs text-slate-300">...</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 3. Deep Scan Report (Para ZIPs) -->
+                        <!-- 3. Deep Scan (ZIPs) -->
                         <div id="deep-scan-section" class="hidden">
-                            <h4 class="text-slate-400 font-bold text-xs uppercase tracking-wider mb-3 flex justify-between items-center border-b border-slate-800 pb-2">
-                                <span><i class="fa-solid fa-box-open mr-2"></i>Conteúdo do Pacote</span>
-                                <span id="files-count" class="text-slate-600 font-mono">0 arquivos</span>
+                            <h4 class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mb-2 border-b border-slate-800 pb-1">
+                                Conteúdo Interno (<span id="files-count">0</span>)
                             </h4>
-                            
                             <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-                                <div class="grid grid-cols-12 bg-slate-800/80 px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                    <div class="col-span-8">Nome do Arquivo</div>
-                                    <div class="col-span-4 text-right">Análise</div>
-                                </div>
-                                <div id="file-list-content" class="custom-scroll max-h-[250px] overflow-y-auto text-sm font-mono divide-y divide-slate-800/50">
-                                    <!-- Lista de arquivos renderizada aqui -->
-                                </div>
+                                <div id="file-list-content" class="custom-scroll max-h-[200px] overflow-y-auto text-xs font-mono divide-y divide-slate-800/50"></div>
                             </div>
                         </div>
-
+                        
+                        <button onclick="resetScanner()" class="w-full mt-4 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg text-sm font-bold transition-colors border border-slate-600">
+                            Nova Análise
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 2: DEVICE AUDIT (NEW) -->
-        <div id="view-device" class="hidden w-full max-w-4xl flex flex-col items-center">
-            <div class="text-center mb-8 max-w-3xl z-10">
-                <h1 class="font-bold mb-4 text-3xl md:text-5xl text-white">
-                    Auditoria de Segurança
+        <!-- VIEW 2: DEVICE AUDIT -->
+        <div id="view-device" class="hidden w-full max-w-4xl flex flex-col items-center animate-fade-in">
+            <div class="text-center mb-6 max-w-3xl z-10">
+                <h1 class="font-bold mb-2 text-2xl md:text-4xl text-white">
+                    Auditoria
                 </h1>
-                <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-                    Verifique vulnerabilidades no seu navegador e conexão. <br>
-                    <span class="text-yellow-500 text-xs"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Nota: Sites não podem escanear apps instalados no seu aparelho.</span>
+                <p class="text-slate-400 text-xs md:text-sm max-w-xl mx-auto">
+                    Verifique a segurança do seu ambiente de navegação.
                 </p>
             </div>
 
-            <div class="w-full glass-panel rounded-xl overflow-hidden p-6 md:p-8">
+            <div class="w-full glass-panel rounded-xl overflow-hidden p-6">
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-4">
                     <!-- Browser Info -->
-                    <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl">
+                    <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm">
                                 <i class="fa-brands fa-chrome"></i>
                             </div>
-                            <h3 class="font-bold text-lg text-white">Navegador</h3>
+                            <h3 class="font-bold text-base text-white">Navegador</h3>
                         </div>
-                        <div class="space-y-3">
-                            <div class="flex justify-between border-b border-slate-700/50 pb-2">
-                                <span class="text-slate-400 text-sm">User Agent</span>
-                                <span id="audit-browser" class="text-white text-sm font-mono text-right w-1/2 truncate">Detectando...</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-700/50 pb-2">
-                                <span class="text-slate-400 text-sm">Plataforma (OS)</span>
-                                <span id="audit-os" class="text-white text-sm font-bold">...</span>
+                        <div class="space-y-2">
+                            <div class="flex justify-between border-b border-slate-700/50 pb-1">
+                                <span class="text-slate-400 text-xs">Sistema</span>
+                                <span id="audit-os" class="text-white text-xs font-bold">...</span>
                             </div>
                             <div class="flex justify-between items-center pt-1">
-                                <span class="text-slate-400 text-sm">Cookies Habilitados</span>
-                                <span id="audit-cookies" class="px-2 py-0.5 rounded text-xs font-bold bg-slate-700">...</span>
+                                <span class="text-slate-400 text-xs">Cookies</span>
+                                <span id="audit-cookies" class="px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-slate-700">...</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Security Context -->
-                    <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+                    <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-lock"></i>
                             </div>
-                            <h3 class="font-bold text-lg text-white">Conexão & Rede</h3>
+                            <h3 class="font-bold text-base text-white">Segurança</h3>
                         </div>
-                        <div class="space-y-3">
-                            <div class="flex justify-between border-b border-slate-700/50 pb-2">
-                                <span class="text-slate-400 text-sm">Protocolo</span>
-                                <span id="audit-protocol" class="text-white text-sm font-mono">HTTPS</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-700/50 pb-2">
-                                <span class="text-slate-400 text-sm">Contexto Seguro</span>
-                                <span id="audit-secure" class="text-white text-sm">...</span>
+                        <div class="space-y-2">
+                            <div class="flex justify-between border-b border-slate-700/50 pb-1">
+                                <span class="text-slate-400 text-xs">Criptografia</span>
+                                <span id="audit-protocol" class="text-white text-xs font-mono">...</span>
                             </div>
                              <div class="flex justify-between items-center pt-1">
-                                <span class="text-slate-400 text-sm">Do Not Track</span>
-                                <span id="audit-dnt" class="px-2 py-0.5 rounded text-xs font-bold bg-slate-700">...</span>
+                                <span class="text-slate-400 text-xs">Do Not Track</span>
+                                <span id="audit-dnt" class="px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-slate-700">...</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Recommendation Panel -->
-                <div class="mt-6 p-4 rounded-xl bg-slate-900/50 border border-slate-800">
-                    <h4 class="text-sm font-bold text-slate-300 uppercase mb-3">Diagnóstico de Ambiente</h4>
-                    <div id="audit-verdict" class="flex items-start gap-3">
-                        <button onclick="runDeviceAudit()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition-colors">
-                            Executar Auditoria
+                <div class="mt-4 p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-center">
+                    <div id="audit-verdict" class="flex flex-col items-center gap-3">
+                        <button onclick="runDeviceAudit()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold transition-colors shadow-lg shadow-blue-900/20">
+                            Executar Diagnóstico
                         </button>
-                        <p class="text-sm text-slate-400 mt-2">Clique para analisar a segurança básica do seu ambiente de navegação.</p>
                     </div>
                 </div>
 
             </div>
         </div>
 
-        <div class="mt-6 text-center text-xs text-slate-600 max-w-lg">
-            <p><i class="fa-solid fa-lock mr-1"></i> Segurança: O código roda 100% no seu navegador.</p>
-            <p>Este sistema detecta padrões conhecidos, mas não substitui um antivírus de sistema (Kernel-level).</p>
+        <div class="mt-6 text-center text-[10px] text-slate-600 max-w-xs">
+            <p><i class="fa-solid fa-check-shield mr-1"></i> SecureScan v3.0 (PWA Ready)</p>
+            <p>O processamento é local. Seus arquivos não são enviados para nenhum servidor.</p>
         </div>
     </main>
 
@@ -331,13 +350,11 @@
             if(tabId === 'scanner') {
                 scannerView.classList.remove('hidden');
                 deviceView.classList.add('hidden');
-                
                 btnScanner.className = 'tab-btn tab-active';
                 btnDevice.className = 'tab-btn tab-inactive';
             } else {
                 scannerView.classList.add('hidden');
                 deviceView.classList.remove('hidden');
-                
                 btnScanner.className = 'tab-btn tab-inactive';
                 btnDevice.className = 'tab-btn tab-active';
             }
@@ -360,83 +377,71 @@
             if (ua.indexOf("like Mac") !== -1) os = "iOS";
 
             // Update UI
-            document.getElementById('audit-browser').innerText = ua;
             document.getElementById('audit-os').innerText = os;
             document.getElementById('audit-protocol').innerText = protocol.toUpperCase().replace(':','');
             
-            // Security Checks
-            const secureEl = document.getElementById('audit-secure');
-            if(isSecure) {
-                secureEl.innerHTML = '<span class="text-green-400"><i class="fa-solid fa-check-circle"></i> Protegido</span>';
-            } else {
-                secureEl.innerHTML = '<span class="text-red-400"><i class="fa-solid fa-triangle-exclamation"></i> Inseguro</span>';
-            }
-
             const cookieEl = document.getElementById('audit-cookies');
-            cookieEl.innerText = cookies ? "Sim" : "Não";
-            cookieEl.className = cookies ? "px-2 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-400" : "px-2 py-0.5 rounded text-xs font-bold bg-slate-700 text-slate-400";
+            cookieEl.innerText = cookies ? "ATIVO" : "INATIVO";
+            cookieEl.className = cookies ? "px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-green-500/20 text-green-400" : "px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-red-500/20 text-red-400";
 
             const dntEl = document.getElementById('audit-dnt');
             const dntActive = dnt === "1" || dnt === "yes";
-            dntEl.innerText = dntActive ? "Ativado" : "Desativado";
-            dntEl.className = dntActive ? "px-2 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-400" : "px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400";
+            dntEl.innerText = dntActive ? "ATIVO" : "INATIVO";
+            dntEl.className = dntActive ? "px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-green-500/20 text-green-400" : "px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-yellow-500/20 text-yellow-400";
 
             // Verdict
             const verdictEl = document.getElementById('audit-verdict');
-            verdictEl.className = "flex flex-col gap-2";
-            
             let advice = [];
-            if (!isSecure) advice.push("⚠️ Você não está usando HTTPS. Sua conexão pode ser interceptada.");
-            if (!dntActive) advice.push("ℹ️ 'Não Rastrear' está desligado. Anunciantes podem te seguir.");
-            if (os === "Android" || os === "iOS") advice.push("📱 Dispositivo Móvel detectado. Mantenha seu sistema operacional atualizado.");
             
-            if (advice.length === 0) {
-                 verdictEl.innerHTML = `
-                    <div class="flex items-center gap-3 text-green-400 bg-green-500/10 p-3 rounded-lg w-full border border-green-500/20">
-                        <i class="fa-solid fa-shield-check text-2xl"></i>
-                        <div>
-                            <h4 class="font-bold">Ambiente Seguro</h4>
-                            <p class="text-xs text-green-300">Navegador atualizado e conexão segura detectada.</p>
-                        </div>
-                    </div>
-                `;
-            } else {
-                verdictEl.innerHTML = `
-                    <div class="w-full space-y-2">
-                        ${advice.map(item => `<div class="text-sm text-slate-300 bg-slate-800 p-2 rounded border border-slate-700">${item}</div>`).join('')}
-                    </div>
-                `;
-            }
+            if (!isSecure) advice.push("⚠️ SEM HTTPS: Sua conexão não é segura.");
+            if (!dntActive) advice.push("ℹ️ RASTREAMENTO: 'Não Rastrear' está desligado.");
+            if (os === "Android" || os === "iOS") advice.push("✅ MOBILE: Sistema móvel identificado.");
+            else advice.push("💻 DESKTOP: Acesso via computador.");
+
+            // Clear button
+            verdictEl.innerHTML = '';
+            
+            const statusBox = document.createElement('div');
+            statusBox.className = isSecure ? "w-full bg-green-500/10 border border-green-500/20 p-3 rounded-lg text-left" : "w-full bg-red-500/10 border border-red-500/20 p-3 rounded-lg text-left";
+            
+            let htmlContent = `
+                <div class="flex items-center gap-2 mb-2 ${isSecure ? 'text-green-400' : 'text-red-400'}">
+                    <i class="fa-solid ${isSecure ? 'fa-shield-check' : 'fa-triangle-exclamation'} text-xl"></i>
+                    <span class="font-bold">${isSecure ? 'Ambiente Seguro' : 'Ambiente Vulnerável'}</span>
+                </div>
+                <div class="space-y-1">
+            `;
+            
+            advice.forEach(msg => {
+                htmlContent += `<p class="text-xs text-slate-300 border-b border-slate-700/50 pb-1 last:border-0">${msg}</p>`;
+            });
+            htmlContent += '</div>';
+            
+            statusBox.innerHTML = htmlContent;
+            verdictEl.appendChild(statusBox);
         }
 
         // --- 1. BANCO DE DADOS DE AMEAÇAS (SIGNATURES) ---
         const THREAT_DB = {
-            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f': 'EICAR Test File (Arquivo de Teste Seguro)',
+            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f': 'EICAR Test File',
             '44d88612fea8a8f36de82e1278abb02f': 'EICAR Test (MD5)',
-            '24d004a104d4d54034dbcffc2a4b19a11f39008a575aa614ea04703480b1022c': 'WannaCry Ransomware (Dropper)',
-            'cfc757367c29379899f8d52362a938db': 'WannaCry (Variante)',
-            '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8': 'WannaCry (Componente)',
+            '24d004a104d4d54034dbcffc2a4b19a11f39008a575aa614ea04703480b1022c': 'WannaCry (Dropper)',
+            'cfc757367c29379899f8d52362a938db': 'WannaCry (Var)',
+            '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8': 'WannaCry (Comp)',
             'a294620543334a721a2e54764663e17b43b323c9655f633d9a1ee72054c52f0e': 'Stuxnet Worm'
         };
 
         // --- 2. CONFIGURAÇÕES HEURÍSTICAS ---
-        const DANGEROUS_EXTENSIONS = ['exe', 'bat', 'cmd', 'sh', 'vbs', 'scr', 'js', 'jar', 'com', 'msi', 'apk', 'pif', 'application', 'gadget'];
+        const DANGEROUS_EXTENSIONS = ['exe', 'bat', 'cmd', 'sh', 'vbs', 'scr', 'js', 'jar', 'com', 'msi', 'apk', 'pif'];
         
         const MALICIOUS_PATTERNS = [
-            { id: 'js_eval', regex: /eval\s*\(/i, desc: 'Obfuscação JS (eval)' },
-            { id: 'shell_ps', regex: /powershell(\.exe)?/i, desc: 'Comando PowerShell' },
-            { id: 'shell_cmd', regex: /cmd(\.exe)?\s*\/c/i, desc: 'Execução de Terminal Windows' },
-            { id: 'vba_macro', regex: /Attribute\s+VB_Name/i, desc: 'Macro VBA (Office)' },
-            { id: 'base64_pe', regex: /TVqQAAMAAAAEAAAA/i, desc: 'Executável Base64 Embutido' }, // Header MZ em Base64
-            { id: 'pdf_js', regex: /\/JavaScript|\/JS/i, desc: 'Script em PDF' },
-            { id: 'autorun', regex: /\[autorun\]/i, desc: 'Arquivo Autorun.inf' }
+            { id: 'js_eval', regex: /eval\s*\(/i, desc: 'Obfuscação JS' },
+            { id: 'shell_ps', regex: /powershell(\.exe)?/i, desc: 'PowerShell' },
+            { id: 'shell_cmd', regex: /cmd(\.exe)?\s*\/c/i, desc: 'CMD.exe' },
+            { id: 'vba_macro', regex: /Attribute\s+VB_Name/i, desc: 'Macro VBA' },
+            { id: 'base64_pe', regex: /TVqQAAMAAAAEAAAA/i, desc: 'Executável Base64' },
+            { id: 'pdf_js', regex: /\/JavaScript|\/JS/i, desc: 'Script PDF' }
         ];
-
-        // Magic Bytes para detectar Spoofing (Extensão falsa)
-        const MAGIC_NUMBERS = {
-            'ffd8ff': 'jpg', '89504e47': 'png', '25504446': 'pdf',
-            '504b0304': 'zip', '52617221': 'rar', '4d5a': 'exe', '7f454c46': 'elf'
-        };
 
         // --- ESTADO DA UI ---
         const ui = {
@@ -456,8 +461,7 @@
                 section: document.getElementById('deep-scan-section'),
                 list: document.getElementById('file-list-content'),
                 count: document.getElementById('files-count')
-            },
-            steps: [document.getElementById('step-1'), document.getElementById('step-2'), document.getElementById('step-3')]
+            }
         };
 
         // --- EVENTOS ---
@@ -475,7 +479,7 @@
             if(e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
         });
 
-        // --- LÓGICA PRINCIPAL (PIPELINE) ---
+        // --- LÓGICA PRINCIPAL ---
         async function processFile(file) {
             resetUI();
             ui.upload.classList.add('hidden');
@@ -484,74 +488,62 @@
             ui.filename.innerText = file.name;
             ui.filesize.innerText = formatBytes(file.size);
 
-            let globalRisk = 'clean'; // clean, warning, danger
-            let globalReason = 'Arquivo parece limpo.';
+            let globalRisk = 'clean'; 
+            let globalReason = 'Arquivo limpo.';
 
-            // --- PASSO 1: CÁLCULO DE HASH E ASSINATURAS ---
-            setStep(0);
-            updateStatus("Verificando Assinatura...", "Calculando Hash SHA-256");
+            // 1. Hash
+            updateStatus("Assinatura...", "Calculando Hash");
             const hash = await calculateSHA256(file);
-            ui.fileHash.innerText = hash.substring(0, 16) + '...';
-            ui.fileHash.title = hash;
-
-            // Check DB
+            ui.fileHash.innerText = hash.substring(0, 8);
+            
             if (THREAT_DB[hash]) {
                 globalRisk = 'danger';
-                globalReason = `Malware Conhecido Detectado: ${THREAT_DB[hash]}`;
-                updateDbCard('danger', globalReason);
+                globalReason = `Malware: ${THREAT_DB[hash]}`;
+                updateDbCard('danger', 'Hash encontrado na Blacklist!');
             } else {
-                updateDbCard('clean', 'Nenhuma correspondência no banco de dados local.');
+                updateDbCard('clean', 'Hash limpo.');
             }
 
-            await sleep(400);
+            await sleep(300);
 
-            // --- PASSO 2: ESTRUTURA E SPOOFING ---
-            setStep(1);
-            updateStatus("Análise Estrutural...", "Verificando Magic Bytes");
+            // 2. Spoofing
+            updateStatus("Estrutura...", "Magic Bytes");
             const magicHeader = await readFileHeader(file);
             const ext = file.name.split('.').pop().toLowerCase();
             
-            const spoofCheck = checkSpoofing(magicHeader, ext);
-            if (spoofCheck.isSpoofed) {
-                // Se já era danger, mantém. Se não, vira danger.
+            const isExe = magicHeader.startsWith('4d5a');
+            const safeExts = ['pdf', 'jpg', 'png', 'txt', 'docx', 'xlsx'];
+            
+            if (isExe && safeExts.includes(ext)) {
                 if (globalRisk !== 'danger') {
                     globalRisk = 'danger';
-                    globalReason = `Extensão falsa detectada! O arquivo finge ser .${ext} mas é .${spoofCheck.realType}.`;
+                    globalReason = `Spoofing: Arquivo .${ext} falso (é um .EXE)`;
                 }
-                updateSpoofCard('danger', `Alerta: Header binário indica arquivo .${spoofCheck.realType.toUpperCase()}`);
+                updateSpoofCard('danger', 'Extensão FALSA detectada!');
             } else {
-                updateSpoofCard('clean', `Assinatura binária compatível com .${ext.toUpperCase()}`);
+                updateSpoofCard('clean', 'Estrutura consistente.');
             }
 
-            await sleep(400);
+            await sleep(300);
 
-            // --- PASSO 3: DEEP SCAN (ZIP/CONTAINER) ---
-            setStep(2);
+            // 3. Deep Scan
             const isContainer = ['zip', 'docx', 'xlsx', 'pptx', 'jar', 'apk'].includes(ext);
             let deepResults = [];
 
             if (isContainer && globalRisk !== 'danger') {
-                updateStatus("Extraindo Container...", "Buscando executáveis ocultos");
+                updateStatus("Extraindo...", "Analisando pacote");
                 try {
                     deepResults = await scanZipContainer(file);
-                    
-                    // Analisar resultados do deep scan
                     const threats = deepResults.filter(r => r.status === 'danger');
                     if (threats.length > 0) {
                         globalRisk = 'danger';
-                        globalReason = `Encontrado(s) ${threats.length} arquivo(s) malicioso(s) dentro do pacote.`;
+                        globalReason = `${threats.length} arquivos maliciosos internos.`;
                     }
                 } catch (e) {
-                    console.log(e);
-                    deepResults = [{ name: 'Erro de Extração', status: 'warning', reason: 'Arquivo corrompido ou protegido por senha.' }];
-                    if (globalRisk === 'clean') {
-                        globalRisk = 'warning';
-                        globalReason = 'Não foi possível verificar o conteúdo interno.';
-                    }
+                    deepResults = [{ name: 'Erro', status: 'warning', reason: 'Falha ao abrir.' }];
                 }
             } else if (!isContainer && isAnalysable(ext) && globalRisk !== 'danger') {
-                // Scan arquivo texto único
-                updateStatus("Análise Heurística...", "Lendo código fonte");
+                updateStatus("Lendo...", "Análise de código");
                 const res = await scanSingleFile(file, file.name);
                 if (res.status === 'danger') {
                     globalRisk = 'danger';
@@ -559,17 +551,15 @@
                 }
             }
 
-            await sleep(500);
+            await sleep(300);
             renderFinalResult(globalRisk, globalReason, deepResults, isContainer);
         }
 
-        // --- FUNÇÕES DE ANÁLISE ---
-
+        // --- HELPERS ---
         async function calculateSHA256(file) {
             const buffer = await file.arrayBuffer();
             const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
         async function readFileHeader(file) {
@@ -585,17 +575,6 @@
             });
         }
 
-        function checkSpoofing(header, ext) {
-            // Verifica se é um executável disfarçado de documento seguro
-            const isExe = header.startsWith('4d5a'); // MZ
-            const safeExtensions = ['pdf', 'jpg', 'png', 'txt', 'docx', 'xlsx', 'pptx'];
-            
-            if (isExe && safeExtensions.includes(ext)) {
-                return { isSpoofed: true, realType: 'exe' };
-            }
-            return { isSpoofed: false };
-        }
-
         async function scanZipContainer(file) {
             const zip = new JSZip();
             const contents = await zip.loadAsync(file);
@@ -609,23 +588,17 @@
                 const internalExt = filename.split('.').pop().toLowerCase();
                 let analysis = { name: filename, status: 'clean', reason: '' };
 
-                // 1. Regra de Extensão Proibida
                 if (DANGEROUS_EXTENSIONS.includes(internalExt)) {
-                    analysis = { name: filename, status: 'danger', reason: `Executável (.${internalExt}) oculto no zip` };
-                } 
-                // 2. Análise de Conteúdo
-                else if (isAnalysable(internalExt)) {
+                    analysis = { name: filename, status: 'danger', reason: `Executável .${internalExt}` };
+                } else if (isAnalysable(internalExt)) {
                     try {
                         const text = await zipObj.async("string");
                         const patterns = scanTextForPatterns(text, internalExt);
-                        if (patterns.length > 0) {
-                            analysis = { name: filename, status: 'danger', reason: patterns.join(', ') };
-                        }
+                        if (patterns.length > 0) analysis = { name: filename, status: 'danger', reason: patterns[0] };
                     } catch(e) {}
                 }
-
                 if (analysis.status !== 'clean') results.push(analysis);
-                else results.push({name: filename, status: 'clean', reason: 'OK'}); // Limita output visual depois
+                else results.push({name: filename, status: 'clean'});
             }
             return results;
         }
@@ -635,14 +608,14 @@
             try {
                 const text = await file.text();
                 const patterns = scanTextForPatterns(text, ext);
-                if (patterns.length > 0) return { name: filename, status: 'danger', reason: patterns.join(', ') };
+                if (patterns.length > 0) return { name: filename, status: 'danger', reason: patterns[0] };
             } catch (e) {}
             return { name: filename, status: 'clean', reason: 'Limpo' };
         }
 
         function scanTextForPatterns(text, ext) {
             const found = [];
-            const snippet = text.slice(0, 150000); // Scan first 150KB
+            const snippet = text.slice(0, 100000); 
             MALICIOUS_PATTERNS.forEach(pat => {
                 if (pat.id.includes('pdf') && ext !== 'pdf') return;
                 if (pat.regex.test(snippet)) found.push(pat.desc);
@@ -651,74 +624,37 @@
         }
 
         function isAnalysable(ext) {
-            return ['js', 'html', 'htm', 'xml', 'txt', 'php', 'py', 'json', 'pdf', 'svg', 'rtf', 'ps1'].includes(ext);
+            return ['js', 'html', 'htm', 'xml', 'txt', 'php', 'py', 'json', 'pdf', 'ps1'].includes(ext);
         }
-
-        // --- MANIPULAÇÃO DE UI ---
 
         function renderFinalResult(risk, reason, deepFiles, isContainer) {
             ui.scanning.classList.add('hidden');
             ui.result.classList.remove('hidden');
 
             const verdictPanel = ui.verdict;
-            let iconClass = '';
-            let colorClass = '';
-            let title = '';
+            let icon = risk === 'danger' ? 'fa-biohazard' : (risk === 'warning' ? 'fa-triangle-exclamation' : 'fa-shield-check');
+            let color = risk === 'danger' ? 'red' : (risk === 'warning' ? 'yellow' : 'green');
+            let title = risk === 'danger' ? 'Ameaça!' : (risk === 'warning' ? 'Atenção' : 'Seguro');
 
-            if (risk === 'danger') {
-                colorClass = 'red';
-                title = 'Ameaça Detectada';
-                iconClass = 'fa-biohazard animate-pulse';
-            } else if (risk === 'warning') {
-                colorClass = 'yellow';
-                title = 'Atenção Requerida';
-                iconClass = 'fa-triangle-exclamation';
-            } else {
-                colorClass = 'green';
-                title = 'Arquivo Seguro';
-                iconClass = 'fa-shield-check';
-            }
-
-            // Configurar Veredito
-            verdictPanel.className = `mb-6 p-5 rounded-xl border flex flex-col sm:flex-row items-start gap-4 bg-${colorClass}-500/10 border-${colorClass}-500/30`;
+            verdictPanel.className = `mb-4 p-4 rounded-xl border flex flex-col sm:flex-row items-center gap-4 bg-${color}-500/10 border-${color}-500/30`;
             verdictPanel.innerHTML = `
-                <div class="w-12 h-12 rounded-lg bg-${colorClass}-500/20 text-${colorClass}-500 flex items-center justify-center text-3xl shrink-0">
-                    <i class="fa-solid ${iconClass}"></i>
+                <div class="w-10 h-10 rounded-lg bg-${color}-500/20 text-${color}-500 flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid ${icon}"></i>
                 </div>
-                <div>
-                    <h3 class="text-${colorClass}-400 font-bold text-xl">${title}</h3>
-                    <p class="text-${colorClass}-100/80 text-sm mt-1 leading-relaxed">${reason}</p>
+                <div class="text-center sm:text-left">
+                    <h3 class="text-${color}-400 font-bold text-lg">${title}</h3>
+                    <p class="text-${color}-100/80 text-xs">${reason}</p>
                 </div>
             `;
+            ui.fileIcon.className = `w-10 h-10 rounded-lg bg-${color}-500/20 text-${color}-500 flex items-center justify-center text-xl transition-colors shrink-0`;
 
-            ui.fileIcon.className = `w-12 h-12 rounded-lg bg-${colorClass}-500/20 text-${colorClass}-500 flex items-center justify-center text-2xl transition-colors`;
-
-            // Configurar Deep Scan UI
             if (isContainer) {
                 ui.deepScan.section.classList.remove('hidden');
-                ui.deepScan.count.innerText = `${deepFiles.length} arquivos`;
-                
-                // Priorizar ameaças no topo
+                ui.deepScan.count.innerText = deepFiles.length;
                 deepFiles.sort((a, b) => (a.status === 'danger' ? -1 : 1));
-
                 ui.deepScan.list.innerHTML = deepFiles.map(f => {
-                    let color = f.status === 'danger' ? 'red-500' : (f.status === 'warning' ? 'yellow-500' : 'slate-500');
-                    let icon = f.status === 'danger' ? 'fa-bug' : 'fa-check';
-                    let statusText = f.status === 'danger' ? 'VÍRUS' : 'OK';
-                    
-                    return `
-                    <div class="grid grid-cols-12 px-4 py-2 hover:bg-slate-800 transition-colors border-b border-slate-800/50 last:border-0">
-                        <div class="col-span-8 flex items-center gap-2 overflow-hidden">
-                            <i class="fa-regular fa-file text-slate-600 text-xs"></i>
-                            <div class="truncate text-slate-300" title="${f.name}">
-                                ${f.name}
-                                ${f.reason ? `<div class="text-[10px] text-${color}">${f.reason}</div>` : ''}
-                            </div>
-                        </div>
-                        <div class="col-span-4 text-right text-xs pt-1 font-bold text-${color}">
-                            <i class="fa-solid ${icon} mr-1"></i> ${statusText}
-                        </div>
-                    </div>`;
+                    let c = f.status === 'danger' ? 'red' : 'slate';
+                    return `<div class="flex justify-between px-2 py-1.5"><span class="text-slate-300 truncate w-3/4" title="${f.name}">${f.name}</span><span class="text-${c}-400 font-bold">${f.status === 'danger' ? 'VÍRUS' : 'OK'}</span></div>`;
                 }).join('');
             } else {
                 ui.deepScan.section.classList.add('hidden');
@@ -727,55 +663,38 @@
 
         function updateSpoofCard(status, text) {
             const color = status === 'danger' ? 'red' : 'green';
-            const icon = status === 'danger' ? 'fa-circle-xmark' : 'fa-circle-check';
-            ui.spoofCard.icon.className = `text-${color}-500 text-xl`;
+            const icon = status === 'danger' ? 'fa-xmark' : 'fa-check';
+            ui.spoofCard.icon.className = `text-${color}-500 text-lg`;
             ui.spoofCard.icon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
             ui.spoofCard.text.innerText = text;
-            ui.spoofCard.text.className = `text-sm text-${color}-200/80`;
+            ui.spoofCard.text.className = `text-xs text-${color}-200/80`;
         }
 
         function updateDbCard(status, text) {
             const color = status === 'danger' ? 'red' : 'green';
             const icon = status === 'danger' ? 'fa-database text-red-500 animate-pulse' : 'fa-database';
-            ui.dbCard.icon.className = `text-${color}-500 text-xl`;
+            ui.dbCard.icon.className = `text-${color}-500 text-lg`;
             ui.dbCard.icon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
             ui.dbCard.text.innerText = text;
-            ui.dbCard.text.className = `text-sm text-${color}-200/80`;
+            ui.dbCard.text.className = `text-xs text-${color}-200/80`;
         }
 
-        // --- UTILITÁRIOS ---
         function updateStatus(text, subtext) {
             ui.status.innerText = text;
             ui.detail.innerText = subtext;
         }
 
-        function setStep(index) {
-            ui.steps.forEach((el, i) => {
-                if (i <= index) el.classList.replace('bg-slate-700', 'bg-blue-500');
-                else el.classList.replace('bg-blue-500', 'bg-slate-700');
-            });
-        }
-
         function formatBytes(bytes) {
-            if (!+bytes) return '0 Bytes';
+            if (!+bytes) return '0 B';
             const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const sizes = ['B', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
         }
 
         function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-        function resetUI() {
-            ui.result.classList.add('hidden');
-            ui.steps.forEach(el => el.classList.replace('bg-blue-500', 'bg-slate-700'));
-        }
-
-        function resetScanner() {
-            ui.result.classList.add('hidden');
-            ui.upload.classList.remove('hidden');
-            document.getElementById('file-input').value = '';
-        }
+        function resetUI() { ui.result.classList.add('hidden'); }
+        function resetScanner() { ui.result.classList.add('hidden'); ui.upload.classList.remove('hidden'); document.getElementById('file-input').value = ''; }
     </script>
 </body>
 </html>
