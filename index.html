@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SecureScan Enterprise | Advanced Threat Analysis</title>
+    <title>SecureScan Enterprise | Full Guardian v8.5</title>
     
     <!-- Meta Tags -->
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Client-Side Heuristic Engine">
+    <meta name="description" content="Client-Side Heuristic Engine com Varredura Recursiva e Performance Otimizada">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,11 +29,14 @@
                     },
                     colors: {
                         slate: { 850: '#151f32', 900: '#0f172a', 950: '#020617' },
-                        cyber: { 500: '#00f0ff', 900: '#004c52' }
+                        cyber: { 500: '#00f0ff', 900: '#004c52' },
+                        danger: { 500: '#ef4444', 900: '#7f1d1d' }
                     },
                     animation: {
-                        'scan-vertical': 'scan 2s linear infinite',
-                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan-vertical': 'scan 1.5s linear infinite', /* Mais rápido */
+                        'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                        'slide-up': 'slideUp 0.3s ease-out forwards', /* Mais rápido */
                     },
                     keyframes: {
                         scan: {
@@ -41,6 +44,10 @@
                             '10%': { opacity: '1' },
                             '90%': { opacity: '1' },
                             '100%': { top: '100%', opacity: '0' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
                         }
                     }
                 }
@@ -49,33 +56,17 @@
     </script>
 
     <style>
-        /* Custom Scrollbar for Terminal feel */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(148, 163, 184, 0.1);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .terminal-text {
-            text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-        }
-
-        .crt::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
         }
 
         .scan-grid {
@@ -83,27 +74,52 @@
             linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
             background-size: 20px 20px;
         }
+
+        /* Radar mais agressivo */
+        .radar-sweep {
+            position: relative;
+        }
+        .radar-sweep::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(59, 130, 246, 0.3) 60deg, transparent 60deg);
+            transform-origin: top left;
+            animation: radar 1.5s linear infinite;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes radar {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* Utilitário para remover transição */
+        .no-transition {
+            transition: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen flex flex-col font-sans overflow-x-hidden selection:bg-blue-500/30">
 
     <!-- Header -->
-    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="relative">
-                    <i class="fa-solid fa-shield-virus text-blue-500 text-2xl"></i>
-                    <div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <div class="relative group">
+                    <i class="fa-solid fa-shield-dog text-blue-500 text-2xl group-hover:text-blue-400 transition-colors"></i>
+                    <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" id="system-status-dot"></div>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg tracking-tight text-white leading-none">SECURE<span class="text-blue-500">SCAN</span></h1>
-                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Enterprise Edition</span>
+                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Full Guardian v8.5</span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <div class="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400">
-                    <span class="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                    <span>SYSTEM ONLINE</span>
+                <div class="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 px-3 py-1 rounded-full border border-slate-800">
+                    <i class="fa-solid fa-bolt text-yellow-500"></i>
+                    <span>FAST ENGINE</span>
                 </div>
             </div>
         </div>
@@ -112,103 +128,147 @@
     <main class="flex-grow container mx-auto px-4 py-8 flex flex-col gap-6 relative z-10">
         
         <!-- Tab Control -->
-        <div class="flex justify-center mb-4">
-            <div class="bg-slate-900 p-1 rounded-lg border border-slate-800 inline-flex">
-                <button onclick="switchTab('scanner')" id="tab-scanner" class="px-6 py-2 rounded-md text-sm font-medium transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/20">
-                    <i class="fa-solid fa-microchip mr-2"></i>Heurística
+        <div class="flex justify-center mb-6">
+            <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 inline-flex shadow-xl">
+                <button onclick="switchTab('scanner')" id="tab-scanner" class="px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2">
+                    <i class="fa-solid fa-file-contract"></i> Arquivo Único
                 </button>
-                <button onclick="switchTab('audit')" id="tab-audit" class="px-6 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
-                    <i class="fa-solid fa-user-secret mr-2"></i>Ambiente
+                <button onclick="switchTab('audit')" id="tab-audit" class="px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-hard-drive"></i> Varredura Completa
                 </button>
             </div>
         </div>
 
         <!-- VIEW: SCANNER -->
-        <div id="view-scanner" class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+        <div id="view-scanner" class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
             
             <!-- Left: Drop Zone & Visuals -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Drop Zone -->
-                <div class="glass-panel rounded-xl p-1 relative overflow-hidden group">
-                    <div class="absolute inset-0 scan-grid opacity-30"></div>
-                    <div id="drop-zone" class="bg-slate-900/50 border-2 border-dashed border-slate-700 rounded-lg h-64 flex flex-col items-center justify-center cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-500/5 relative overflow-hidden" onclick="document.getElementById('file-input').click()">
+                <div class="glass-panel rounded-xl p-1 relative overflow-hidden group border-blue-500/10 hover:border-blue-500/30 transition-colors duration-200">
+                    <div class="absolute inset-0 scan-grid opacity-20 pointer-events-none"></div>
+                    <div id="drop-zone" class="bg-slate-900/60 border-2 border-dashed border-slate-700 rounded-lg h-72 flex flex-col items-center justify-center cursor-pointer transition-colors hover:border-blue-500 hover:bg-blue-500/5 relative overflow-hidden" onclick="document.getElementById('file-input').click()">
                         
                         <!-- Static State -->
                         <div id="ui-upload-static" class="text-center z-10 pointer-events-none transition-opacity duration-300">
-                            <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center mx-auto mb-4 border border-slate-700 shadow-xl group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-magnifying-glass-chart text-3xl text-blue-500"></i>
+                            <div class="w-20 h-20 bg-slate-800/80 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-slate-700 shadow-2xl group-hover:scale-110 transition-transform duration-200 backdrop-blur">
+                                <i class="fa-solid fa-microchip text-4xl text-blue-500"></i>
                             </div>
-                            <h3 class="text-lg font-bold text-white mb-1">Arraste ou Clique</h3>
-                            <p class="text-xs text-slate-400 font-mono">Suporte: EXE, PDF, DOCX, ZIP, APK...</p>
+                            <h3 class="text-xl font-bold text-white mb-2 tracking-tight">Análise Profunda & Segredos</h3>
+                            <p class="text-xs text-slate-400 font-mono mb-4">Detecta: Configs, Binários, Scripts e Malwares Ocultos</p>
+                            <div class="flex gap-2 justify-center flex-wrap px-4">
+                                <span class="text-[9px] bg-slate-800 text-cyan-400 px-2 py-1 rounded border border-cyan-500/30">UNKNOWN FILE ID</span>
+                                <span class="text-[9px] bg-slate-800 text-yellow-400 px-2 py-1 rounded border border-yellow-500/30">SECRETS SCAN</span>
+                                <span class="text-[9px] bg-slate-800 text-red-400 px-2 py-1 rounded border border-red-500/30">ZERO-DAY HEURISTICS</span>
+                            </div>
                         </div>
 
                         <!-- Scanning State (Hidden) -->
                         <div id="ui-scanning-anim" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center hidden z-20">
-                            <div class="w-full absolute top-0 h-1 bg-blue-500 shadow-[0_0_20px_#3b82f6] animate-scan-vertical"></div>
-                            <div class="font-mono text-blue-400 text-4xl mb-2 font-bold tracking-tighter" id="scan-percent">0%</div>
-                            <div class="font-mono text-xs text-slate-500 uppercase tracking-widest animate-pulse">Analisando Buffers</div>
+                            <!-- Radar Effect -->
+                            <div class="absolute w-full h-full opacity-10 radar-sweep"></div>
+                            
+                            <div class="w-full absolute top-0 h-1 bg-blue-500 shadow-[0_0_30px_#3b82f6] animate-scan-vertical"></div>
+                            
+                            <div class="font-mono text-blue-400 text-6xl mb-4 font-bold tracking-tighter tabular-nums" id="scan-percent">0%</div>
+                            
+                            <!-- Progress Bar (No Transition for Jumpy Effect) -->
+                            <div class="w-2/3 max-w-md h-3 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700">
+                                <div id="scan-progress-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-0 shadow-[0_0_15px_#22d3ee]"></div>
+                            </div>
+                            
+                            <div class="font-mono text-xs text-slate-400 uppercase tracking-widest animate-pulse flex items-center gap-2" id="scan-status-text">
+                                <i class="fa-solid fa-microscope fa-bounce"></i> Processando...
+                            </div>
+                            
+                            <button onclick="cancelScan()" class="mt-8 px-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-full border border-red-500/30 transition-transform active:scale-95">
+                                INTERROMPER
+                            </button>
                         </div>
 
-                        <input type="file" id="file-input" class="hidden" onchange="handleFile(this.files[0])">
+                        <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this.files[0])">
                     </div>
                 </div>
 
-                <!-- Results Section (Initially Hidden) -->
-                <div id="result-panel" class="hidden space-y-4">
-                    <!-- Verdict Header -->
-                    <div id="verdict-banner" class="glass-panel p-5 rounded-xl border-l-4 flex items-center justify-between transition-all">
-                        <div class="flex items-center gap-4">
-                            <div id="verdict-icon" class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-slate-800"></div>
+                <!-- Results Section -->
+                <div id="result-panel" class="hidden space-y-6 animate-slide-up">
+                    
+                    <!-- 1. Verdict Banner -->
+                    <div id="verdict-banner" class="glass-panel p-6 rounded-xl border-l-4 flex items-center justify-between transition-all relative overflow-hidden shadow-2xl">
+                        <div class="relative z-10 flex items-center gap-5">
+                            <div id="verdict-icon" class="w-16 h-16 rounded-xl flex items-center justify-center text-3xl bg-slate-800 shadow-inner"></div>
                             <div>
-                                <h2 id="verdict-title" class="font-bold text-xl text-white"></h2>
-                                <p id="verdict-desc" class="text-sm font-mono text-slate-300"></p>
+                                <h2 id="verdict-title" class="font-bold text-2xl text-white tracking-tight"></h2>
+                                <p id="verdict-desc" class="text-sm font-mono text-slate-300 mt-1"></p>
                             </div>
                         </div>
-                        <div class="text-right hidden sm:block">
-                            <div class="text-[10px] text-slate-500 uppercase tracking-widest">Score de Risco</div>
-                            <div id="risk-score" class="text-2xl font-bold font-mono">0/10</div>
+                        <div class="text-right hidden sm:block relative z-10">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Risco Calculado</div>
+                            <div id="risk-score" class="text-3xl font-bold font-mono">0/10</div>
                         </div>
                     </div>
 
-                    <!-- Details Grid -->
+                    <!-- 2. Detailed Telemetry Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Entropy Card -->
-                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-lg">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-bold text-slate-400 uppercase"><i class="fa-solid fa-chart-simple mr-2"></i>Entropia</span>
-                                <span id="val-entropy" class="text-xs font-mono bg-slate-800 px-2 py-0.5 rounded">0.00</span>
+                        <!-- File Metadata -->
+                        <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-colors">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 border-b border-slate-800 pb-2"><i class="fa-solid fa-file-lines mr-2"></i> Metadados do Arquivo</h3>
+                            <div class="space-y-3 font-mono text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Nome:</span>
+                                    <span id="meta-name" class="text-white truncate max-w-[200px]">...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Tamanho Exato:</span>
+                                    <span id="meta-size" class="text-blue-300">...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Modificado em:</span>
+                                    <span id="meta-date" class="text-slate-300">...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">MIME (Detectado):</span>
+                                    <span id="meta-mime" class="text-purple-300 font-bold">...</span>
+                                </div>
                             </div>
-                            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                <div id="bar-entropy" class="bg-blue-500 h-full w-0 transition-all duration-1000"></div>
-                            </div>
-                            <p class="text-[10px] text-slate-500 mt-2">Valores > 7.5 indicam compressão ou criptografia (comum em malware empacotado).</p>
                         </div>
 
-                        <!-- File Info -->
-                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-lg font-mono text-xs space-y-2">
-                            <div class="flex justify-between border-b border-slate-800 pb-1">
-                                <span class="text-slate-500">Tipo (Magic):</span>
-                                <span id="val-magic" class="text-blue-300">...</span>
+                        <!-- Technical Inspection -->
+                        <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-colors">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 border-b border-slate-800 pb-2"><i class="fa-solid fa-code mr-2"></i> Inspeção Técnica</h3>
+                            <div class="space-y-3 font-mono text-xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500">Magic Header:</span>
+                                    <span id="val-magic" class="text-yellow-300 font-bold bg-yellow-900/20 px-1 rounded">...</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500">Entropia (Conteúdo):</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                            <div id="mini-entropy-bar" class="h-full bg-blue-500 w-0"></div>
+                                        </div>
+                                        <span id="val-entropy" class="text-slate-300">0.00</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Hex Preview -->
+                                <div class="mt-2">
+                                    <span class="text-[10px] text-slate-600 uppercase block mb-1">Hex Preview (Início)</span>
+                                    <div id="hex-preview" class="bg-black/40 p-2 rounded text-[10px] text-slate-400 font-mono break-all leading-tight border border-slate-800">
+                                        00 00 00 00 00 00 00 00
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex justify-between border-b border-slate-800 pb-1">
-                                <span class="text-slate-500">Tamanho:</span>
-                                <span id="val-size" class="text-white">...</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500">SHA-256:</span>
-                                <button onclick="copyHash()" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded transition-colors"><i class="fa-regular fa-copy"></i> Copiar</button>
-                            </div>
-                            <div id="val-hash" class="text-[10px] text-slate-600 break-all truncate">...</div>
                         </div>
                     </div>
 
-                    <!-- Deep Scan List (for ZIP/Containers) -->
-                    <div id="container-analysis" class="hidden bg-slate-900/80 border border-slate-800 rounded-lg overflow-hidden">
-                        <div class="px-4 py-2 bg-slate-800/50 border-b border-slate-800 text-xs font-bold text-slate-400 uppercase flex justify-between">
-                            <span>Conteúdo do Pacote</span>
-                            <span id="files-count" class="bg-slate-700 px-1.5 rounded text-white">0</span>
+                    <!-- 3. Container Analysis (Deep Scan) -->
+                    <div id="container-analysis" class="hidden bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                        <div class="px-5 py-3 bg-slate-800/80 border-b border-slate-800 text-xs font-bold text-slate-300 uppercase flex justify-between items-center backdrop-blur">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-box-open"></i> Conteúdo Interno</span>
+                            <span id="files-count" class="bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">0</span>
                         </div>
-                        <div id="container-list" class="max-h-40 overflow-y-auto p-2 space-y-1 custom-scroll">
+                        <div id="container-list" class="max-h-60 overflow-y-auto p-3 space-y-1 custom-scroll bg-[#0b101b]">
                             <!-- JS Generated -->
                         </div>
                     </div>
@@ -216,108 +276,458 @@
             </div>
 
             <!-- Right: Terminal / Log Output -->
-            <div class="lg:col-span-1 h-full">
-                <div class="glass-panel rounded-xl h-full min-h-[400px] flex flex-col border border-slate-700/50 bg-[#0c0f16]">
-                    <div class="h-8 bg-slate-800/50 border-b border-slate-700 flex items-center px-3 justify-between">
-                        <span class="text-[10px] font-mono font-bold text-slate-400"><i class="fa-solid fa-terminal mr-2"></i>SYSTEM LOG</span>
-                        <div class="flex gap-1.5">
-                            <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-                            <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+            <div class="lg:col-span-1 h-full min-h-[500px] lg:min-h-0">
+                <div class="glass-panel rounded-xl h-full flex flex-col border border-slate-700/50 bg-[#05080f] shadow-2xl overflow-hidden">
+                    <div class="h-10 bg-slate-900 border-b border-slate-800 flex items-center px-4 justify-between shrink-0">
+                        <span class="text-[11px] font-mono font-bold text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-cyan-500"></i> SYSTEM KERNEL LOG
+                        </span>
+                        <div class="flex gap-1.5 opacity-50">
+                            <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
                         </div>
                     </div>
-                    <div id="terminal-output" class="flex-grow p-4 font-mono text-[11px] overflow-y-auto text-slate-300 space-y-1 custom-scroll">
-                        <div class="text-blue-500">Welcome to SecureScan v4.0.1 Enterprise</div>
-                        <div class="text-slate-500">Initializing heuristic engine...</div>
-                        <div class="text-slate-500">Ready for input.</div>
-                        <div class="animate-pulse text-blue-500">_</div>
+                    <div id="terminal-output" class="flex-grow p-4 font-mono text-[11px] overflow-y-auto text-slate-300 space-y-1.5 custom-scroll break-all leading-tight">
+                        <div class="text-blue-500 font-bold">Booting SecureScan Full Guardian v8.5...</div>
+                        <div class="text-slate-500">Loading Recursive Scanning Module...</div>
+                        <div class="text-slate-500">Optimizing UI Threads for Zero-Delay...</div>
+                        <div class="text-green-500">[SYSTEM READY] Awaiting Target.</div>
+                        <div class="animate-pulse text-cyan-500 mt-2">_</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- VIEW: AUDIT -->
-        <div id="view-audit" class="hidden max-w-2xl mx-auto w-full animate-fade-in">
-            <div class="glass-panel p-8 rounded-xl border border-slate-700">
-                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <i class="fa-solid fa-fingerprint text-blue-500"></i> Auditoria de Ambiente
-                </h2>
+        <div id="view-audit" class="hidden max-w-4xl mx-auto w-full animate-fade-in">
+            <div class="glass-panel p-8 rounded-xl border border-slate-700 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i class="fa-solid fa-fingerprint text-9xl"></i>
+                </div>
                 
-                <div class="space-y-4" id="audit-list">
-                    <!-- JS Populates -->
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                    <i class="fa-solid fa-shield-virus text-blue-500"></i> Central de Segurança & Varredura
+                </h2>
+                <p class="text-slate-400 text-sm mb-6">Diagnóstico de sistema e varredura de diretórios em busca de malwares.</p>
+                
+                <!-- System Scan Section -->
+                <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6 hover:border-yellow-500/50 transition-colors">
+                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-tree text-yellow-400"></i> Varredura Completa de Diretório (Recursivo)
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Selecione a pasta raiz do seu usuário, Downloads ou Documentos. O sistema irá varrer 
+                        <strong class="text-white">todas as subpastas</strong> automaticamente.
+                    </p>
+                    
+                    <div id="batch-scan-ui" class="hidden mb-4">
+                        <div class="flex justify-between text-xs font-mono text-slate-400 mb-1">
+                            <span id="batch-status">Indexando...</span>
+                            <span id="batch-count">0 arquivos</span>
+                        </div>
+                        <!-- Fast/No Transition Progress Bar -->
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="batch-progress" class="h-full bg-yellow-500 w-0"></div>
+                        </div>
+                        <div id="batch-results" class="mt-3 max-h-48 overflow-y-auto custom-scroll space-y-1 text-xs font-mono"></div>
+                    </div>
+
+                    <button onclick="initSystemScan()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-yellow-900/20 transition-transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i> SELECIONAR DIRETÓRIO RAIZ PARA SCAN
+                    </button>
                 </div>
 
-                <button onclick="runAudit()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono py-3 rounded transition-colors">
-                    RE-EXECUTAR DIAGNÓSTICO
-                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="audit-list"></div>
+
+                <div class="mt-8 pt-6 border-t border-slate-800 flex justify-end">
+                    <button onclick="runAudit()" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Atualizar Status
+                    </button>
+                </div>
             </div>
         </div>
         
     </main>
 
-    <footer class="text-center py-6 text-[10px] text-slate-600 font-mono relative z-10">
-        <p>SECURESCAN LOCAL ENGINE | NO CLOUD UPLOAD | DATA PRIVACY GUARANTEED</p>
+    <footer class="text-center py-8 text-[10px] text-slate-600 font-mono relative z-10 border-t border-slate-900/50 mt-auto bg-slate-950">
+        <p class="mb-2">SECURESCAN GUARDIAN V8.5 | HIGH-PERFORMANCE RECURSIVE ENGINE</p>
+        <p class="opacity-50">Dados processados localmente. Nenhum arquivo deixa seu dispositivo.</p>
     </footer>
 
-    <!-- LOGIC -->
+    <!-- WORKER SCRIPT -->
+    <script id="worker-code" type="javascript/worker">
+        self.onmessage = async function(e) {
+            const { file, type, context } = e.data;
+
+            if (type === 'scan') {
+                const chunkSize = 1024 * 1024 * 5; // 5MB Chunks
+                const totalSize = file.size;
+                let offset = 0;
+                let lastReportedPercent = 0;
+                
+                const frequencies = new Uint32Array(256);
+                let triggers = [];
+                let riskScore = 0;
+                let magicBytes = "";
+                let detectedType = "Desconhecido";
+                let scanMode = "GENERIC";
+                
+                // --- THREAT PATTERNS ---
+                const patterns = {
+                    global: [
+                        { regex: /TVqQAAMAAAAEAAAA/, score: 6, label: 'Embedded PE Header (Base64)' }, 
+                        { regex: /X5O!P%@AP\[4\\PZX54\(P\^/, score: 10, label: 'EICAR Test Signature' },
+                        { regex: /xmrig|minerd|stratum\+tcp/i, score: 6, label: 'Crypto Mining Protocol' }
+                    ],
+                    web: [
+                        { regex: /<script[\s\S]*?(eval|atob|btoa|unescape)[\s\S]*?<\/script>/i, score: 5, label: 'Obfuscated JS' },
+                        { regex: /iframe[\s\S]*?src=['"](http|ftp)/i, score: 4, label: 'Suspicious Iframe' },
+                        { regex: /<\?php[\s\S]*?(eval|system|exec|passthru)/i, score: 8, label: 'Dangerous PHP Function' }
+                    ],
+                    script: [
+                        { regex: /powershell(?:\.exe)?.*(?:-enc|-encodedcommand)/i, score: 7, label: 'Encoded PowerShell' },
+                        { regex: /cmd(?:\.exe)?\s*\/c/i, score: 4, label: 'Command Line Execution' }
+                    ],
+                    secrets: [
+                        { regex: /(?:AWS|aws)_(?:SECRET|ACCESS)_KEY/i, score: 7, label: 'AWS Credentials Leak' },
+                        { regex: /jdbc:[a-z:]+:\/\//i, score: 5, label: 'Database Connection String' },
+                        { regex: /password\s*=\s*['"][^'"]+['"]/i, score: 4, label: 'Hardcoded Password' },
+                        { regex: /BEGIN PRIVATE KEY/i, score: 8, label: 'Private Key Exposure' },
+                        { regex: /api_key\s*[:=]\s*['"][a-zA-Z0-9]{20,}['"]/i, score: 6, label: 'Potential API Key' }
+                    ]
+                };
+
+                const MAGIC_DB = {
+                    '4d5a': 'EXE/DLL (Windows)',
+                    '504b0304': 'ZIP/APK/DOCX',
+                    '25504446': 'PDF',
+                    '7f454c46': 'ELF (Linux)',
+                    'd0cf11e0': 'Legacy Office',
+                    '89504e47': 'PNG',
+                    '47494638': 'GIF',
+                    'ffd8ffe0': 'JPEG',
+                    '3c21444f': 'HTML',
+                    '7b0d0a': 'JSON'
+                };
+
+                const startTime = Date.now();
+                let overlapBuffer = ""; 
+                const decoder = new TextDecoder("utf-8", {fatal: false});
+                
+                const ext = file.name.split('.').pop().toLowerCase();
+                const configExts = ['properties', 'env', 'ini', 'xml', 'json', 'yaml', 'yml', 'conf', 'config'];
+                const scriptExts = ['bat', 'cmd', 'ps1', 'sh', 'vbs', 'py', 'pl'];
+                const webExts = ['html', 'htm', 'js', 'php', 'asp', 'jsp'];
+
+                let activePatterns = [...patterns.global];
+
+                if (webExts.includes(ext)) {
+                    scanMode = "WEB";
+                    activePatterns.push(...patterns.web);
+                } else if (scriptExts.includes(ext)) {
+                    scanMode = "SCRIPT";
+                    activePatterns.push(...patterns.script);
+                } else if (configExts.includes(ext)) {
+                    scanMode = "CONFIG / SECRETS";
+                    activePatterns.push(...patterns.secrets);
+                } else {
+                    activePatterns.push(...patterns.secrets);
+                }
+
+                let hexPreview = "";
+
+                try {
+                    while (offset < totalSize) {
+                        const blob = file.slice(offset, offset + chunkSize);
+                        const buffer = await blob.arrayBuffer();
+                        const uint8 = new Uint8Array(buffer);
+                        
+                        if (offset === 0) {
+                            const headerArr = Array.from(uint8.slice(0, 4));
+                            const headerHex = headerArr.map(b => b.toString(16).padStart(2, '0')).join('');
+                            magicBytes = headerHex;
+
+                            hexPreview = Array.from(uint8.slice(0, 8))
+                                .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+                                .join(' ');
+                            
+                            for (let key in MAGIC_DB) {
+                                if (headerHex.startsWith(key)) detectedType = MAGIC_DB[key];
+                            }
+                            
+                            if (detectedType === "Desconhecido") {
+                                let isBinary = false;
+                                for(let i=0; i < Math.min(uint8.length, 500); i++) {
+                                    if (uint8[i] === 0 || (uint8[i] < 9 && uint8[i] !== 0)) {
+                                        isBinary = true;
+                                        break;
+                                    }
+                                }
+                                if (!isBinary) {
+                                    detectedType = "Texto Puro";
+                                    if (scanMode === "GENERIC") {
+                                        scanMode = "GENERIC TEXT";
+                                        if (!activePatterns.includes(patterns.secrets[0])) {
+                                            activePatterns.push(...patterns.secrets);
+                                        }
+                                    }
+                                } else {
+                                    detectedType = "Binário Genérico";
+                                    scanMode = "BINARY";
+                                }
+                            }
+                        }
+
+                        for (let i = 0; i < uint8.length; i++) {
+                            frequencies[uint8[i]]++;
+                        }
+
+                        const textChunk = decoder.decode(uint8, {stream: true});
+                        const searchSpace = overlapBuffer + textChunk;
+                        
+                        for (const p of activePatterns) {
+                            if (p.regex.test(searchSpace)) {
+                                if (!triggers.some(t => t.label === p.label)) {
+                                    triggers.push({ label: p.label, score: p.score });
+                                    riskScore += p.score;
+                                    if (context !== 'batch') {
+                                        self.postMessage({ type: 'log', msg: `DETECTED: ${p.label}`, level: 'danger' });
+                                    }
+                                }
+                            }
+                        }
+
+                        overlapBuffer = textChunk.slice(-2000);
+                        offset += chunkSize;
+                        
+                        // PROGRESS UPDATE (Jumpier logic for less lag feeling)
+                        if (context !== 'batch') {
+                            const percent = Math.round((offset / totalSize) * 100);
+                            // Report only every 10% or at 100% to create the "jump" effect user wanted
+                            if (percent - lastReportedPercent >= 10 || percent === 100) {
+                                self.postMessage({ type: 'progress', percent: percent });
+                                lastReportedPercent = percent;
+                            }
+                        }
+                    }
+
+                    let entropy = 0;
+                    for (let i = 0; i < 256; i++) {
+                        if (frequencies[i] > 0) {
+                            const p = frequencies[i] / totalSize;
+                            entropy -= p * Math.log2(p);
+                        }
+                    }
+
+                    if (detectedType.includes("Texto") && entropy > 6.0) {
+                        riskScore += 3;
+                        triggers.push({ label: 'Entropia Alta em Texto (Base64/Obfuscated)', score: 3 });
+                    }
+
+                    const isExeMagic = detectedType.includes('EXE') || detectedType.includes('DLL');
+                    const safeExeExts = ['exe', 'dll', 'msi', 'sys', 'scr'];
+                    if (isExeMagic && !safeExeExts.includes(ext)) {
+                        riskScore += 9;
+                        triggers.push({ label: `Binário Executável Disfarçado (.${ext})`, score: 9 });
+                    }
+
+                    const endTime = Date.now();
+                    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+
+                    self.postMessage({
+                        type: 'complete',
+                        context: context, 
+                        fileName: file.name, 
+                        result: {
+                            entropy: entropy,
+                            magic: magicBytes,
+                            hexPreview: hexPreview,
+                            detectedType: detectedType,
+                            riskScore: Math.min(riskScore, 10),
+                            triggers: triggers,
+                            timeTaken: timeTaken,
+                            scanMode: scanMode
+                        }
+                    });
+
+                } catch (err) {
+                    self.postMessage({ type: 'error', msg: err.message, context: context });
+                }
+            }
+        };
+    </script>
+
+    <!-- MAIN LOGIC -->
     <script>
-        // --- CONFIG & CONSTANTS ---
+        // --- CONFIG & STATE ---
         const UI = {
             dropZone: document.getElementById('drop-zone'),
             staticUpload: document.getElementById('ui-upload-static'),
             scanningAnim: document.getElementById('ui-scanning-anim'),
             scanPercent: document.getElementById('scan-percent'),
+            progressBar: document.getElementById('scan-progress-bar'),
+            statusText: document.getElementById('scan-status-text'),
             resultPanel: document.getElementById('result-panel'),
-            verdictBanner: document.getElementById('verdict-banner'),
-            verdictTitle: document.getElementById('verdict-title'),
-            verdictDesc: document.getElementById('verdict-desc'),
-            verdictIcon: document.getElementById('verdict-icon'),
             terminal: document.getElementById('terminal-output'),
             containerAnalysis: document.getElementById('container-analysis'),
             containerList: document.getElementById('container-list'),
             riskScore: document.getElementById('risk-score'),
             valEntropy: document.getElementById('val-entropy'),
-            barEntropy: document.getElementById('bar-entropy'),
+            miniEntropyBar: document.getElementById('mini-entropy-bar'),
             valMagic: document.getElementById('val-magic'),
-            valSize: document.getElementById('val-size'),
-            valHash: document.getElementById('val-hash'),
+            hexPreview: document.getElementById('hex-preview'),
+            metaName: document.getElementById('meta-name'),
+            metaSize: document.getElementById('meta-size'),
+            metaDate: document.getElementById('meta-date'),
+            metaMime: document.getElementById('meta-mime'),
+            verdictBanner: document.getElementById('verdict-banner'),
+            verdictTitle: document.getElementById('verdict-title'),
+            verdictDesc: document.getElementById('verdict-desc'),
+            verdictIcon: document.getElementById('verdict-icon'),
+            // Batch Scan UI
+            batchScanUI: document.getElementById('batch-scan-ui'),
+            batchStatus: document.getElementById('batch-status'),
+            batchCount: document.getElementById('batch-count'),
+            batchProgress: document.getElementById('batch-progress'),
+            batchResults: document.getElementById('batch-results')
         };
 
-        const PATTERNS = {
-            malicious: [
-                { id: 'eval', regex: /eval\s*\(/i, score: 3, desc: 'JS Obfuscation (eval)' },
-                { id: 'powershell', regex: /powershell(\.exe)?/i, score: 5, desc: 'PowerShell Command' },
-                { id: 'cmd', regex: /cmd(\.exe)?\s*\/c/i, score: 4, desc: 'CMD Execution' },
-                { id: 'ip_addr', regex: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, score: 2, desc: 'Embedded IPv4' },
-                { id: 'base64_pe', regex: /TVqQAAMAAAAEAAAA/, score: 5, desc: 'Base64 Encoded Executable' },
-                { id: 'wscript', regex: /WScript\.Shell/i, score: 4, desc: 'WScript Shell Object' },
-                { id: 'autorun', regex: /\[autorun\]/i, score: 3, desc: 'Autorun Configuration' }
-            ],
-            pdf: [
-                { id: 'pdf_js', regex: /\/JavaScript/i, score: 4, desc: 'PDF Embedded JavaScript' },
-                { id: 'pdf_launch', regex: /\/Launch/i, score: 5, desc: 'PDF Launch Command' },
-                { id: 'pdf_action', regex: /\/OpenAction/i, score: 3, desc: 'PDF Auto-Action' }
-            ]
-        };
+        let worker = null;
+        let activeFile = null;
 
-        const MAGIC_BYTES = {
-            '4d5a': 'EXE/DLL (Windows)',
-            '504b0304': 'ZIP/Office/APK',
-            '25504446': 'PDF Document',
-            '7f454c46': 'ELF (Linux)',
-            'd0cf11e0': 'Office Legacy (OLE)',
-            '89504e47': 'PNG Image',
-            'ffd8ffe0': 'JPEG Image'
-        };
+        function initWorker() {
+            if (worker) return; 
+            
+            const blob = new Blob([document.getElementById('worker-code').textContent], { type: "text/javascript" });
+            worker = new Worker(window.URL.createObjectURL(blob));
+            
+            worker.onmessage = function(e) {
+                const data = e.data;
+                
+                if (data.context === 'batch') {
+                    handleBatchMessage(data);
+                    return;
+                }
+                
+                if (data.type === 'progress') {
+                    updateProgress(data.percent);
+                } else if (data.type === 'log') {
+                    log(data.msg, data.level);
+                } else if (data.type === 'complete') {
+                    finalizeScan(data.result);
+                } else if (data.type === 'error') {
+                    log('SYSTEM ERROR: ' + data.msg, 'danger');
+                    alert('Erro Crítico: ' + data.msg);
+                    resetUI();
+                }
+            };
+            
+            log('Engine initialized.', 'success');
+        }
 
-        const THREAT_HASHES = {
-            // EICAR Standard Test File (MD5 & SHA256)
-            '44d88612fea8a8f36de82e1278abb02f': 'EICAR Test File',
-            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f': 'EICAR Test File',
-            // Dummy hashes for demo purposes
-            'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855': 'Empty File (Suspicious)',
-        };
+        // --- BATCH SCAN LOGIC (RECURSIVE) ---
+        let batchQueue = [];
+        let batchTotal = 0;
+        let batchProcessed = 0;
+        let batchRisks = 0;
 
-        // --- CORE FUNCTIONS ---
+        async function initSystemScan() {
+            if (!('showDirectoryPicker' in window)) {
+                alert('Seu navegador não suporta Directory Access. Use Chrome/Edge Desktop.');
+                return;
+            }
+
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                UI.batchScanUI.classList.remove('hidden');
+                UI.batchResults.innerHTML = '';
+                batchQueue = [];
+                
+                UI.batchStatus.innerText = "Indexando arquivos (Recursivo)...";
+                log('Iniciando indexação recursiva...', 'system');
+                
+                // Recursive file collection
+                await collectFilesRecursively(dirHandle);
+
+                batchTotal = batchQueue.length;
+                batchProcessed = 0;
+                batchRisks = 0;
+                UI.batchCount.innerText = `0 / ${batchTotal} arquivos`;
+                
+                if (batchTotal > 0) {
+                    processBatchQueue();
+                } else {
+                    alert('Pasta vazia.');
+                    UI.batchScanUI.classList.add('hidden');
+                }
+
+            } catch (err) {
+                console.error(err);
+                if (err.name !== 'AbortError') alert('Erro ao acessar: ' + err.message);
+            }
+        }
+
+        async function collectFilesRecursively(dirHandle) {
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'file') {
+                    const file = await entry.getFile();
+                    batchQueue.push(file);
+                    // Update UI lightly during indexing to show activity
+                    if(batchQueue.length % 50 === 0) UI.batchCount.innerText = `${batchQueue.length} arquivos encontrados...`;
+                } else if (entry.kind === 'directory') {
+                    // Recursion
+                    await collectFilesRecursively(entry);
+                }
+            }
+        }
+
+        function processBatchQueue() {
+            if (batchQueue.length === 0) {
+                UI.batchStatus.innerText = "Varredura Concluída.";
+                UI.batchStatus.classList.add('text-green-400');
+                if(batchRisks === 0) alert('Limpo! Nenhum arquivo suspeito encontrado.');
+                else alert(`Concluído. ${batchRisks} ameaças detectadas.`);
+                return;
+            }
+
+            const file = batchQueue.shift();
+            UI.batchStatus.innerText = `Varrendo: ${file.name}`;
+            
+            if(!worker) initWorker();
+            worker.postMessage({ type: 'scan', file: file, context: 'batch' });
+        }
+
+        function handleBatchMessage(data) {
+            if (data.type === 'complete') {
+                batchProcessed++;
+                const pct = (batchProcessed / batchTotal) * 100;
+                UI.batchProgress.style.width = `${pct}%`;
+                UI.batchCount.innerText = `${batchProcessed} / ${batchTotal}`;
+
+                const result = data.result;
+                if (result.riskScore > 0) {
+                    batchRisks++;
+                    const div = document.createElement('div');
+                    const color = result.riskScore >= 7 ? 'text-red-400 border-red-900/50 bg-red-900/10' : 'text-yellow-400 border-yellow-900/50 bg-yellow-900/10';
+                    div.className = `flex justify-between items-center p-2 rounded border text-xs mb-1 ${color}`;
+                    div.innerHTML = `
+                        <span class="truncate w-2/3" title="${data.fileName}"><i class="fa-solid fa-bug"></i> ${data.fileName}</span>
+                        <span class="font-bold">${result.riskScore}/10</span>
+                    `;
+                    UI.batchResults.appendChild(div);
+                    // Scroll to bottom
+                    UI.batchResults.scrollTop = UI.batchResults.scrollHeight;
+                }
+
+                processBatchQueue();
+            } else if (data.type === 'error') {
+                batchProcessed++;
+                processBatchQueue();
+            }
+        }
+
+        // --- SINGLE FILE LOGIC ---
 
         function switchTab(tab) {
             const scanView = document.getElementById('view-scanner');
@@ -328,380 +738,282 @@
             if (tab === 'scanner') {
                 scanView.classList.remove('hidden');
                 auditView.classList.add('hidden');
-                btnScan.className = "px-6 py-2 rounded-md text-sm font-medium transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/20";
-                btnAudit.className = "px-6 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800";
+                btnScan.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2";
+                btnAudit.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2";
             } else {
                 scanView.classList.add('hidden');
                 auditView.classList.remove('hidden');
-                btnScan.className = "px-6 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800";
-                btnAudit.className = "px-6 py-2 rounded-md text-sm font-medium transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/20";
+                btnScan.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2";
+                btnAudit.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2";
                 runAudit();
             }
         }
 
-        // TERMINAL LOGGING
         function log(msg, type = 'info') {
             const div = document.createElement('div');
             const time = new Date().toLocaleTimeString('pt-BR', { hour12: false });
             
             let color = 'text-slate-400';
-            let icon = '[*]';
+            let icon = '➜';
             
-            if (type === 'danger') { color = 'text-red-500'; icon = '[!]'; }
-            else if (type === 'success') { color = 'text-green-400'; icon = '[+]'; }
-            else if (type === 'warning') { color = 'text-yellow-400'; icon = '[?]'; }
-            else if (type === 'system') { color = 'text-blue-400 font-bold'; icon = '[SYS]'; }
+            if (type === 'danger') { color = 'text-red-400 font-bold'; icon = '✖'; }
+            else if (type === 'success') { color = 'text-green-400'; icon = '✔'; }
+            else if (type === 'warning') { color = 'text-yellow-400'; icon = '⚠'; }
+            else if (type === 'system') { color = 'text-cyan-400 font-bold'; icon = 'ℹ'; }
 
-            div.innerHTML = `<span class="text-slate-600 mr-2">${time}</span><span class="${color}">${icon} ${msg}</span>`;
+            div.innerHTML = `<span class="text-slate-600 mr-2 opacity-50">[${time}]</span><span class="${color}">${icon} ${msg}</span>`;
             
-            // Remove the flashing cursor temporarily
             const cursor = UI.terminal.lastElementChild;
-            if(cursor && cursor.innerHTML === '_') cursor.remove();
+            if(cursor && cursor.innerText === '_') cursor.remove();
 
             UI.terminal.appendChild(div);
             
-            // Add cursor back
             const newCursor = document.createElement('div');
-            newCursor.className = "animate-pulse text-blue-500";
+            newCursor.className = "animate-pulse text-cyan-500 mt-1";
             newCursor.innerText = "_";
             UI.terminal.appendChild(newCursor);
 
             UI.terminal.scrollTop = UI.terminal.scrollHeight;
         }
 
-        // FILE HANDLING
-        async function handleFile(file) {
+        function handleFileSelect(file) {
             if (!file) return;
+            activeFile = file;
+            startScan(file);
+        }
 
-            // Reset UI
+        function startScan(file) {
             UI.resultPanel.classList.add('hidden');
             UI.containerAnalysis.classList.add('hidden');
             UI.staticUpload.classList.add('opacity-0');
             UI.scanningAnim.classList.remove('hidden');
+            UI.progressBar.style.width = '0%';
+            UI.scanPercent.innerText = '0%';
+            UI.terminal.innerHTML = '<div class="text-cyan-500 font-bold">STARTING DEEP INSPECTION PROTOCOL...</div><div class="animate-pulse text-cyan-500">_</div>';
             
-            log('----------------------------------------');
-            log(`Starting analysis: ${file.name}`, 'system');
-            log(`Size: ${formatBytes(file.size)}`);
+            log(`Target: ${file.name}`, 'system');
+            
+            initWorker();
+            worker.postMessage({ type: 'scan', file: file });
+        }
 
-            let riskScore = 0;
-            let triggers = [];
+        function updateProgress(percent) {
+            UI.scanPercent.innerText = `${percent}%`;
+            UI.progressBar.style.width = `${percent}%`;
+            
+            if(percent < 15) UI.statusText.innerHTML = '<i class="fa-solid fa-code"></i> Verificando Header...';
+            else if(percent < 50) UI.statusText.innerHTML = '<i class="fa-solid fa-key"></i> Buscando Segredos...';
+            else if(percent < 80) UI.statusText.innerHTML = '<i class="fa-solid fa-wave-square"></i> Medindo Entropia...';
+            else UI.statusText.innerHTML = '<i class="fa-solid fa-clipboard-check"></i> Finalizando...';
+        }
 
-            try {
-                // 1. RTLO Check (Spoofing)
-                if (/\u202E/.test(file.name)) {
-                    log('CRITICAL: RTLO character detected in filename!', 'danger');
-                    riskScore += 10;
-                    triggers.push('Spoofing de Extensão (RTLO)');
-                }
-
-                // 2. Read File
-                const arrayBuffer = await readFileAsync(file);
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const hexHeader = getHexHeader(uint8Array);
-                
-                // Progress Simulation
-                updateProgress(20);
-
-                // 3. Magic Bytes Analysis
-                log(`Magic Bytes: ${hexHeader}`);
-                let detectedType = "Desconhecido";
-                let isExe = false;
-                
-                for (const [magic, desc] of Object.entries(MAGIC_BYTES)) {
-                    if (hexHeader.startsWith(magic)) {
-                        detectedType = desc;
-                        if (desc.includes('EXE') || desc.includes('DLL')) isExe = true;
-                        break;
-                    }
-                }
-                UI.valMagic.innerText = `${hexHeader} (${detectedType})`;
-                log(`File Type Identified: ${detectedType}`, 'success');
-
-                // Check Extension Mismatch
-                const ext = file.name.split('.').pop().toLowerCase();
-                if (isExe && !['exe', 'dll', 'msi'].includes(ext)) {
-                    log(`MISMATCH: Executable code in .${ext} file`, 'danger');
-                    riskScore += 8;
-                    triggers.push('Extensão Falsa (Exe disfarçado)');
-                }
-
-                updateProgress(40);
-
-                // 4. Hash Calculation
-                const hash = await crypto.subtle.digest('SHA-256', arrayBuffer);
-                const hashArray = Array.from(new Uint8Array(hash));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                UI.valHash.innerText = hashHex;
-                UI.valHash.dataset.full = hashHex; // store for copy
-                log(`SHA-256 Calculated`, 'info');
-
-                if (THREAT_HASHES[hashHex]) {
-                    log(`HASH MATCH: Known Malware (${THREAT_HASHES[hashHex]})`, 'danger');
-                    riskScore += 10;
-                    triggers.push(`Malware Conhecido: ${THREAT_HASHES[hashHex]}`);
-                }
-
-                updateProgress(60);
-
-                // 5. Entropy Analysis
-                const entropy = calculateEntropy(uint8Array);
-                UI.valEntropy.innerText = entropy.toFixed(2);
-                UI.barEntropy.style.width = `${(entropy / 8) * 100}%`;
-                
-                if (entropy > 7.5) {
-                    UI.barEntropy.className = "bg-red-500 h-full transition-all duration-1000";
-                    log(`High Entropy (${entropy.toFixed(2)}): Potential Encryption/Packing`, 'warning');
-                    if (['txt', 'log', 'js', 'bat'].includes(ext)) {
-                        riskScore += 4; // High entropy in text files is very suspicious
-                        triggers.push('Alta Entropia em Arquivo Texto');
-                    }
-                } else {
-                    UI.barEntropy.className = "bg-blue-500 h-full transition-all duration-1000";
-                }
-
-                updateProgress(80);
-
-                // 6. Content/Deep Scan
-                const textContent = new TextDecoder('utf-8').decode(uint8Array.slice(0, 100000)); // Scan first 100KB text
-                
-                // Text Patterns
-                const activePatterns = (detectedType.includes('PDF') || ext === 'pdf') ? [...PATTERNS.malicious, ...PATTERNS.pdf] : PATTERNS.malicious;
-
-                activePatterns.forEach(p => {
-                    if (p.regex.test(textContent)) {
-                        log(`Pattern Detected: ${p.desc}`, 'warning');
-                        riskScore += p.score;
-                        triggers.push(p.desc);
-                    }
-                });
-
-                // Archive Analysis (ZIP/DOCX/JAR)
-                if (hexHeader.startsWith('504b0304')) {
-                    log('Archive structure detected. Deep scanning...', 'system');
-                    const zipTriggers = await analyzeZip(file);
-                    if (zipTriggers.length > 0) {
-                        riskScore += 5;
-                        triggers = [...triggers, ...zipTriggers];
-                    }
-                }
-
-                updateProgress(100);
-                await sleep(500); // Visual pause
-
-                // FINAL VERDICT
-                UI.scanningAnim.classList.add('hidden');
-                UI.staticUpload.classList.remove('opacity-0');
-                UI.resultPanel.classList.remove('hidden');
-                UI.valSize.innerText = formatBytes(file.size);
-
-                renderVerdict(riskScore, triggers);
-
-            } catch (err) {
-                console.error(err);
-                log('Error processing file', 'danger');
-                UI.scanningAnim.classList.add('hidden');
-                UI.staticUpload.classList.remove('opacity-0');
-                alert('Erro ao processar arquivo. Verifique se o arquivo não está corrompido.');
+        function cancelScan() {
+            if(worker) {
+                worker.terminate();
+                worker = null;
+                log('SCAN CANCELADO.', 'danger');
+                setTimeout(resetUI, 500);
             }
         }
 
-        async function analyzeZip(file) {
+        function resetUI() {
+            UI.scanningAnim.classList.add('hidden');
+            UI.staticUpload.classList.remove('opacity-0');
+            UI.progressBar.style.width = '0%';
+        }
+
+        async function finalizeScan(result) {
+            // Pequeno delay "técnico" para a animação terminar
+            await new Promise(r => setTimeout(r, 200));
+
+            UI.scanningAnim.classList.add('hidden');
+            UI.staticUpload.classList.remove('opacity-0');
+            UI.resultPanel.classList.remove('hidden');
+
+            UI.metaName.innerText = activeFile.name;
+            UI.metaSize.innerText = `${activeFile.size.toLocaleString()} bytes (${formatBytes(activeFile.size)})`;
+            UI.metaDate.innerText = activeFile.lastModifiedDate ? activeFile.lastModifiedDate.toLocaleString() : "Desconhecido";
+            UI.metaMime.innerText = result.detectedType;
+            
+            UI.valMagic.innerText = result.magic || "N/A";
+            UI.hexPreview.innerText = result.hexPreview || "N/A";
+            
+            UI.valEntropy.innerText = result.entropy.toFixed(3);
+            UI.miniEntropyBar.style.width = `${(result.entropy / 8) * 100}%`;
+            
+            renderVerdict(result.riskScore, result.triggers);
+
+            const deepScanTypes = ['ZIP', 'APK', 'DOCX', 'Legacy Office'];
+            if (deepScanTypes.some(t => result.detectedType.includes(t)) || activeFile.name.endsWith('.zip')) {
+                analyzeZipStructure(activeFile);
+            }
+        }
+
+        async function analyzeZipStructure(file) {
+            log('Inspecionando container...', 'system');
             UI.containerAnalysis.classList.remove('hidden');
-            UI.containerList.innerHTML = '';
-            let detected = [];
+            UI.containerList.innerHTML = '<div class="text-slate-500 text-xs p-2 flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Lendo estrutura...</div>';
             
             try {
                 const zip = new JSZip();
-                const content = await zip.loadAsync(file);
+                const content = await zip.loadAsync(file); 
                 const files = Object.keys(content.files);
-                document.getElementById('files-count').innerText = files.length;
                 
+                document.getElementById('files-count').innerText = files.length;
                 let html = '';
 
-                // Check for Office Macros
-                if (files.includes('word/vbaProject.bin') || files.includes('xl/vbaProject.bin')) {
-                    log('OFFICE MACRO DETECTED', 'danger');
-                    detected.push('Macro VBA (Office)');
-                    html += `<div class="flex justify-between px-2 py-1 bg-red-500/10 rounded"><span class="text-red-300 font-bold">vbaProject.bin</span><span class="text-red-500 font-bold">MACRO</span></div>`;
-                }
-
+                let count = 0;
                 for (const filename of files) {
+                    if (count > 100) {
+                        html += `<div class="text-center text-[10px] text-slate-600 italic py-2">...e mais ${files.length - 100} arquivos...</div>`;
+                        break;
+                    }
                     if (content.files[filename].dir) continue;
                     
                     const fExt = filename.split('.').pop().toLowerCase();
-                    const isDangerous = ['exe', 'bat', 'vbs', 'ps1', 'js', 'jar', 'scr'].includes(fExt);
+                    const isDangerous = ['exe', 'bat', 'vbs', 'ps1', 'js', 'scr', 'php', 'env', 'ini'].includes(fExt);
                     
-                    let rowClass = isDangerous ? 'text-yellow-400' : 'text-slate-400';
-                    let status = isDangerous ? 'SUSPEITO' : 'OK';
+                    let rowClass = isDangerous ? 'text-yellow-400 font-bold' : 'text-slate-400';
+                    let status = isDangerous ? '<i class="fa-solid fa-eye"></i>' : 'OK';
+                    let bgClass = isDangerous ? 'bg-yellow-500/5' : 'hover:bg-slate-800/50';
                     
-                    if (isDangerous) {
-                        html += `<div class="flex justify-between px-2 py-1 border-b border-slate-800/50"><span class="${rowClass} truncate w-3/4">${filename}</span><span class="text-[10px] font-bold text-yellow-500">${status}</span></div>`;
-                        if (!detected.includes('Executável em Arquivo Comprimido')) detected.push('Executável em Arquivo Comprimido');
-                    } else {
-                        // Only show first 10 safe files to save DOM
-                        if (files.indexOf(filename) < 10) {
-                            html += `<div class="flex justify-between px-2 py-1 border-b border-slate-800/50"><span class="${rowClass} truncate w-3/4">${filename}</span><span class="text-[10px] text-slate-600">${status}</span></div>`;
-                        }
-                    }
+                    html += `<div class="flex justify-between items-center px-3 py-1.5 border-b border-slate-800/50 ${bgClass} transition-colors"><span class="${rowClass} truncate w-3/4 flex items-center gap-2" title="${filename}">${isDangerous ? '<i class="fa-solid fa-bug"></i>' : '<i class="fa-regular fa-file"></i>'} ${filename}</span><span class="text-[10px] ${isDangerous ? 'text-yellow-500 font-bold' : 'text-slate-600'}">${status}</span></div>`;
+                    count++;
                 }
                 
                 UI.containerList.innerHTML = html;
+                log('Container indexado.', 'success');
             } catch (e) {
-                log('Failed to parse archive structure', 'warning');
+                UI.containerList.innerHTML = '<div class="text-red-400 text-xs p-3 flex items-center gap-2"><i class="fa-solid fa-lock"></i> Bloqueado.</div>';
+                log('Erro container.', 'warning');
             }
-            return detected;
-        }
-
-        function calculateEntropy(uint8Array) {
-            const frequencies = new Array(256).fill(0);
-            for (let i = 0; i < uint8Array.length; i++) {
-                frequencies[uint8Array[i]]++;
-            }
-            
-            let entropy = 0;
-            const len = uint8Array.length;
-            for (let i = 0; i < 256; i++) {
-                if (frequencies[i] > 0) {
-                    const p = frequencies[i] / len;
-                    entropy -= p * Math.log2(p);
-                }
-            }
-            return entropy;
         }
 
         function renderVerdict(score, triggers) {
-            // Cap score at 10
             const finalScore = Math.min(score, 10);
             UI.riskScore.innerText = `${finalScore}/10`;
 
             let color = 'green';
             let title = 'Arquivo Limpo';
-            let desc = 'Nenhuma ameaça significativa detectada.';
+            let desc = 'Nenhuma anomalia detectada.';
             let icon = '<i class="fa-solid fa-shield-check"></i>';
+            let borderClass = 'border-green-500';
+            let bgClass = 'bg-green-500/5';
 
             if (finalScore >= 7) {
                 color = 'red';
-                title = 'AMEAÇA CRÍTICA';
-                desc = triggers.join(', ') || 'Múltiplos indicadores de comprometimento.';
-                icon = '<i class="fa-solid fa-radiation"></i>';
-                log('VERDICT: MALICIOUS', 'danger');
+                title = 'ALTO RISCO';
+                desc = triggers.map(t => t.label).slice(0, 3).join(', ');
+                icon = '<i class="fa-solid fa-biohazard fa-shake"></i>';
+                borderClass = 'border-red-500';
+                bgClass = 'bg-red-500/10 shadow-[inset_0_0_20px_rgba(239,68,68,0.2)]';
+                log('VEREDITO: AMEAÇA', 'danger');
             } else if (finalScore > 0) {
                 color = 'yellow';
-                title = 'Atenção Necessária';
-                desc = triggers.join(', ');
+                title = 'Suspeito';
+                desc = triggers.map(t => t.label).join(', ');
                 icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
-                log('VERDICT: SUSPICIOUS', 'warning');
+                borderClass = 'border-yellow-500';
+                bgClass = 'bg-yellow-500/5';
+                log('VEREDITO: SUSPEITO', 'warning');
             } else {
-                log('VERDICT: CLEAN', 'success');
+                log('VEREDITO: SEGURO', 'success');
             }
 
-            UI.verdictBanner.className = `glass-panel p-5 rounded-xl border-l-4 flex items-center justify-between transition-all border-${color}-500 bg-${color}-500/5`;
-            UI.verdictIcon.className = `w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-${color}-500/20 text-${color}-500`;
-            UI.verdictTitle.className = `font-bold text-xl text-${color}-400`;
+            UI.verdictBanner.className = `glass-panel p-6 rounded-xl border-l-4 flex items-center justify-between transition-all relative overflow-hidden ${borderClass} ${bgClass}`;
+            UI.verdictIcon.className = `w-16 h-16 rounded-xl flex items-center justify-center text-3xl bg-slate-900/50 shadow-inner text-${color}-500`;
+            UI.verdictTitle.className = `font-bold text-2xl text-${color}-400`;
             UI.verdictTitle.innerText = title;
             UI.verdictIcon.innerHTML = icon;
             UI.verdictDesc.innerText = desc;
-            UI.riskScore.className = `text-2xl font-bold font-mono text-${color}-500`;
-        }
-
-        // --- UTILS ---
-        function updateProgress(percent) {
-            UI.scanPercent.innerText = `${percent}%`;
-        }
-
-        function readFileAsync(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
-        }
-
-        function getHexHeader(uint8Array) {
-            return Array.from(uint8Array.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('');
+            UI.riskScore.className = `text-3xl font-bold font-mono text-${color}-500`;
         }
 
         function formatBytes(bytes) {
             if (bytes === 0) return '0 B';
             const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        function copyHash() {
-            navigator.clipboard.writeText(UI.valHash.dataset.full);
-            alert('Hash copiado!');
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
         // --- AUDIT SYSTEM ---
-        function runAudit() {
+        async function runAudit() {
             const list = document.getElementById('audit-list');
+            list.innerHTML = '<div class="col-span-2 text-center text-cyan-400 py-4"><i class="fa-solid fa-circle-notch fa-spin"></i> Auditando hardware...</div>';
+
+            await new Promise(r => setTimeout(r, 500));
             list.innerHTML = '';
 
-            const checks = [
-                { 
-                    label: 'Conexão Segura (HTTPS)', 
-                    check: window.location.protocol === 'https:', 
-                    msgOk: 'Criptografado (TLS)', 
-                    msgFail: 'Inseguro (HTTP)' 
-                },
-                { 
-                    label: 'Cookies Habilitados', 
-                    check: navigator.cookieEnabled, 
-                    msgOk: 'Ativo', 
-                    msgFail: 'Inativo' 
-                },
-                { 
-                    label: 'User Agent', 
-                    check: true, 
-                    msgOk: navigator.userAgent.substring(0, 40) + '...', 
-                    msgFail: '' 
-                },
-                {
-                    label: 'Do Not Track',
-                    check: (navigator.doNotTrack === "1"),
-                    msgOk: 'Solicitação Enviada',
-                    msgFail: 'Não configurado'
-                },
-                {
-                    label: 'Plataforma',
-                    check: true,
-                    msgOk: navigator.platform,
-                    msgFail: ''
-                },
-                {
-                    label: 'Memória (aprox)',
-                    check: navigator.deviceMemory,
-                    msgOk: `${navigator.deviceMemory} GB`,
-                    msgFail: 'Indisponível'
+            let gpuInfo = "Bloqueado";
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        gpuInfo = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
                 }
+            } catch(e) {}
+
+            let batteryInfo = "AC Power";
+            if (navigator.getBattery) {
+                try {
+                    const bat = await navigator.getBattery();
+                    batteryInfo = bat.charging ? "Carregando" : `Bateria (${Math.round(bat.level * 100)}%)`;
+                } catch(e) {}
+            }
+
+            const checks = [
+                { label: 'Criptografia', icon: 'fa-lock', val: window.location.protocol === 'https:' ? 'TLS 1.2+' : 'Inseguro', safe: window.location.protocol === 'https:' },
+                { label: 'GPU', icon: 'fa-microchip', val: gpuInfo.substring(0, 20) + '...', safe: !gpuInfo.includes("SwiftShader") },
+                { label: 'Energia', icon: 'fa-plug', val: batteryInfo, safe: true },
+                { label: 'Tela', icon: 'fa-desktop', val: `${window.screen.width}x${window.screen.height}`, safe: window.screen.width > 800 },
+                { label: 'Threads', icon: 'fa-server', val: navigator.hardwareConcurrency || 'N/A', safe: navigator.hardwareConcurrency > 1 },
+                { label: 'Bot Check', icon: 'fa-robot', val: navigator.webdriver ? 'DETECTADO' : 'Humano', safe: !navigator.webdriver },
+                { label: 'Memória', icon: 'fa-memory', val: navigator.deviceMemory ? `~${navigator.deviceMemory} GB` : 'N/A', safe: true }
             ];
 
             checks.forEach(c => {
-                const color = c.check ? 'text-green-400' : 'text-red-400';
-                const icon = c.check ? 'fa-check-circle' : 'fa-times-circle';
+                const color = c.safe ? 'text-green-400' : 'text-red-400';
+                const iconColor = c.safe ? 'text-blue-500' : 'text-red-500';
                 
-                // User Agent is neutral
-                const displayColor = (c.label === 'User Agent' || c.label === 'Plataforma' || c.label.includes('Memória')) ? 'text-blue-400' : color;
-                const displayIcon = (c.label === 'User Agent' || c.label === 'Plataforma' || c.label.includes('Memória')) ? 'fa-info-circle' : icon;
-
-                const item = `
-                <div class="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-800">
-                    <span class="text-sm font-medium text-slate-300">${c.label}</span>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono ${displayColor}">${c.check ? c.msgOk : c.msgFail}</span>
-                        <i class="fa-solid ${displayIcon} ${displayColor}"></i>
+                list.innerHTML += `
+                <div class="flex items-center justify-between p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center ${iconColor}">
+                            <i class="fa-solid ${c.icon}"></i>
+                        </div>
+                        <span class="text-sm font-bold text-slate-300">${c.label}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs font-mono ${color} font-bold flex items-center justify-end gap-2">
+                            ${c.val}
+                        </div>
                     </div>
                 </div>`;
-                list.innerHTML += item;
             });
         }
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            UI.dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        UI.dropZone.addEventListener('dragenter', () => UI.dropZone.classList.add('border-blue-500', 'bg-blue-500/10'));
+        UI.dropZone.addEventListener('dragleave', () => UI.dropZone.classList.remove('border-blue-500', 'bg-blue-500/10'));
+        UI.dropZone.addEventListener('drop', (e) => {
+            UI.dropZone.classList.remove('border-blue-500', 'bg-blue-500/10');
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect(files[0]);
+        });
+        
+        initWorker();
+
     </script>
 </body>
 </html>
