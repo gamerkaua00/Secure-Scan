@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SecureScan Enterprise | Full Guardian v8.5</title>
+    <title>SecureScan Enterprise | Full Guardian v9.5</title>
     
     <!-- Meta Tags -->
     <meta name="theme-color" content="#0f172a">
@@ -30,13 +30,15 @@
                     colors: {
                         slate: { 850: '#151f32', 900: '#0f172a', 950: '#020617' },
                         cyber: { 500: '#00f0ff', 900: '#004c52' },
-                        danger: { 500: '#ef4444', 900: '#7f1d1d' }
+                        danger: { 500: '#ef4444', 900: '#7f1d1d' },
+                        purple: { 500: '#a855f7', 900: '#581c87' }
                     },
                     animation: {
                         'scan-vertical': 'scan 1.5s linear infinite', /* Mais rápido */
                         'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'spin-slow': 'spin 3s linear infinite',
                         'slide-up': 'slideUp 0.3s ease-out forwards', /* Mais rápido */
+                        'network-pulse': 'networkPulse 2s infinite'
                     },
                     keyframes: {
                         scan: {
@@ -48,6 +50,11 @@
                         slideUp: {
                             '0%': { transform: 'translateY(20px)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        networkPulse: {
+                            '0%': { boxShadow: '0 0 0 0 rgba(168, 85, 247, 0.4)' },
+                            '70%': { boxShadow: '0 0 0 15px rgba(168, 85, 247, 0)' },
+                            '100%': { boxShadow: '0 0 0 0 rgba(168, 85, 247, 0)' }
                         }
                     }
                 }
@@ -75,6 +82,12 @@
             background-size: 20px 20px;
         }
 
+        .url-grid {
+            background-image: linear-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
         /* Radar mais agressivo */
         .radar-sweep {
             position: relative;
@@ -99,6 +112,11 @@
         .no-transition {
             transition: none !important;
         }
+
+        .url-input-glow:focus {
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.6);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen flex flex-col font-sans overflow-x-hidden selection:bg-blue-500/30">
@@ -113,7 +131,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg tracking-tight text-white leading-none">SECURE<span class="text-blue-500">SCAN</span></h1>
-                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Full Guardian v8.5</span>
+                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Full Guardian v9.5</span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -129,147 +147,270 @@
         
         <!-- Tab Control -->
         <div class="flex justify-center mb-6">
-            <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 inline-flex shadow-xl">
-                <button onclick="switchTab('scanner')" id="tab-scanner" class="px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2">
-                    <i class="fa-solid fa-file-contract"></i> Arquivo Único
+            <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 inline-flex shadow-xl flex-wrap justify-center gap-2 sm:gap-0">
+                <button onclick="switchTab('scanner')" id="tab-scanner" class="px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2">
+                    <i class="fa-solid fa-file-contract"></i> Arquivo
                 </button>
-                <button onclick="switchTab('audit')" id="tab-audit" class="px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-hard-drive"></i> Varredura Completa
+                <!-- NEW URL BUTTON -->
+                <button onclick="switchTab('url')" id="tab-url" class="px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-globe"></i> Link Seguro
+                </button>
+                <button onclick="switchTab('audit')" id="tab-audit" class="px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-hard-drive"></i> Auditoria
                 </button>
             </div>
         </div>
 
-        <!-- VIEW: SCANNER -->
-        <div id="view-scanner" class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+        <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
             
             <!-- Left: Drop Zone & Visuals -->
             <div class="lg:col-span-2 space-y-6">
-                <!-- Drop Zone -->
-                <div class="glass-panel rounded-xl p-1 relative overflow-hidden group border-blue-500/10 hover:border-blue-500/30 transition-colors duration-200">
-                    <div class="absolute inset-0 scan-grid opacity-20 pointer-events-none"></div>
-                    <div id="drop-zone" class="bg-slate-900/60 border-2 border-dashed border-slate-700 rounded-lg h-72 flex flex-col items-center justify-center cursor-pointer transition-colors hover:border-blue-500 hover:bg-blue-500/5 relative overflow-hidden" onclick="document.getElementById('file-input').click()">
+                
+                <!-- VIEW: SCANNER (ORIGINAL v8.5 CODE RESTORED) -->
+                <div id="view-scanner">
+                    <!-- Drop Zone -->
+                    <div class="glass-panel rounded-xl p-1 relative overflow-hidden group border-blue-500/10 hover:border-blue-500/30 transition-colors duration-200 mb-6">
+                        <div class="absolute inset-0 scan-grid opacity-20 pointer-events-none"></div>
+                        <div id="drop-zone" class="bg-slate-900/60 border-2 border-dashed border-slate-700 rounded-lg h-72 flex flex-col items-center justify-center cursor-pointer transition-colors hover:border-blue-500 hover:bg-blue-500/5 relative overflow-hidden" onclick="document.getElementById('file-input').click()">
+                            
+                            <!-- Static State -->
+                            <div id="ui-upload-static" class="text-center z-10 pointer-events-none transition-opacity duration-300">
+                                <div class="w-20 h-20 bg-slate-800/80 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-slate-700 shadow-2xl group-hover:scale-110 transition-transform duration-200 backdrop-blur">
+                                    <i class="fa-solid fa-microchip text-4xl text-blue-500"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2 tracking-tight">Análise Profunda & Segredos</h3>
+                                <p class="text-xs text-slate-400 font-mono mb-4">Detecta: Configs, Binários, Scripts e Malwares Ocultos</p>
+                                <div class="flex gap-2 justify-center flex-wrap px-4">
+                                    <span class="text-[9px] bg-slate-800 text-cyan-400 px-2 py-1 rounded border border-cyan-500/30">UNKNOWN FILE ID</span>
+                                    <span class="text-[9px] bg-slate-800 text-yellow-400 px-2 py-1 rounded border border-yellow-500/30">SECRETS SCAN</span>
+                                    <span class="text-[9px] bg-slate-800 text-red-400 px-2 py-1 rounded border border-red-500/30">ZERO-DAY HEURISTICS</span>
+                                </div>
+                            </div>
+
+                            <!-- Scanning State (Hidden) -->
+                            <div id="ui-scanning-anim" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center hidden z-20">
+                                <!-- Radar Effect -->
+                                <div class="absolute w-full h-full opacity-10 radar-sweep"></div>
+                                
+                                <div class="w-full absolute top-0 h-1 bg-blue-500 shadow-[0_0_30px_#3b82f6] animate-scan-vertical"></div>
+                                
+                                <div class="font-mono text-blue-400 text-6xl mb-4 font-bold tracking-tighter tabular-nums" id="scan-percent">0%</div>
+                                
+                                <!-- Progress Bar (No Transition for Jumpy Effect - User Preference) -->
+                                <div class="w-2/3 max-w-md h-3 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700">
+                                    <div id="scan-progress-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-0 shadow-[0_0_15px_#22d3ee]"></div>
+                                </div>
+                                
+                                <div class="font-mono text-xs text-slate-400 uppercase tracking-widest animate-pulse flex items-center gap-2" id="scan-status-text">
+                                    <i class="fa-solid fa-microscope fa-bounce"></i> Processando...
+                                </div>
+                                
+                                <button onclick="cancelScan()" class="mt-8 px-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-full border border-red-500/30 transition-transform active:scale-95">
+                                    INTERROMPER
+                                </button>
+                            </div>
+
+                            <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this.files[0])">
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="result-panel" class="hidden space-y-6 animate-slide-up">
                         
-                        <!-- Static State -->
-                        <div id="ui-upload-static" class="text-center z-10 pointer-events-none transition-opacity duration-300">
-                            <div class="w-20 h-20 bg-slate-800/80 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-slate-700 shadow-2xl group-hover:scale-110 transition-transform duration-200 backdrop-blur">
-                                <i class="fa-solid fa-microchip text-4xl text-blue-500"></i>
+                        <!-- 1. Verdict Banner -->
+                        <div id="verdict-banner" class="glass-panel p-6 rounded-xl border-l-4 flex items-center justify-between transition-all relative overflow-hidden shadow-2xl">
+                            <div class="relative z-10 flex items-center gap-5">
+                                <div id="verdict-icon" class="w-16 h-16 rounded-xl flex items-center justify-center text-3xl bg-slate-800 shadow-inner"></div>
+                                <div>
+                                    <h2 id="verdict-title" class="font-bold text-2xl text-white tracking-tight"></h2>
+                                    <p id="verdict-desc" class="text-sm font-mono text-slate-300 mt-1"></p>
+                                </div>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-2 tracking-tight">Análise Profunda & Segredos</h3>
-                            <p class="text-xs text-slate-400 font-mono mb-4">Detecta: Configs, Binários, Scripts e Malwares Ocultos</p>
-                            <div class="flex gap-2 justify-center flex-wrap px-4">
-                                <span class="text-[9px] bg-slate-800 text-cyan-400 px-2 py-1 rounded border border-cyan-500/30">UNKNOWN FILE ID</span>
-                                <span class="text-[9px] bg-slate-800 text-yellow-400 px-2 py-1 rounded border border-yellow-500/30">SECRETS SCAN</span>
-                                <span class="text-[9px] bg-slate-800 text-red-400 px-2 py-1 rounded border border-red-500/30">ZERO-DAY HEURISTICS</span>
+                            <div class="text-right hidden sm:block relative z-10">
+                                <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Risco Calculado</div>
+                                <div id="risk-score" class="text-3xl font-bold font-mono">0/10</div>
                             </div>
                         </div>
 
-                        <!-- Scanning State (Hidden) -->
-                        <div id="ui-scanning-anim" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center hidden z-20">
-                            <!-- Radar Effect -->
-                            <div class="absolute w-full h-full opacity-10 radar-sweep"></div>
-                            
-                            <div class="w-full absolute top-0 h-1 bg-blue-500 shadow-[0_0_30px_#3b82f6] animate-scan-vertical"></div>
-                            
-                            <div class="font-mono text-blue-400 text-6xl mb-4 font-bold tracking-tighter tabular-nums" id="scan-percent">0%</div>
-                            
-                            <!-- Progress Bar (No Transition for Jumpy Effect) -->
-                            <div class="w-2/3 max-w-md h-3 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700">
-                                <div id="scan-progress-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-0 shadow-[0_0_15px_#22d3ee]"></div>
+                        <!-- 2. Detailed Telemetry Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- File Metadata -->
+                            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-colors">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 border-b border-slate-800 pb-2"><i class="fa-solid fa-file-lines mr-2"></i> Metadados do Arquivo</h3>
+                                <div class="space-y-3 font-mono text-xs">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Nome:</span>
+                                        <span id="meta-name" class="text-white truncate max-w-[200px]">...</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Tamanho Exato:</span>
+                                        <span id="meta-size" class="text-blue-300">...</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Modificado em:</span>
+                                        <span id="meta-date" class="text-slate-300">...</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">MIME (Detectado):</span>
+                                        <span id="meta-mime" class="text-purple-300 font-bold">...</span>
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <div class="font-mono text-xs text-slate-400 uppercase tracking-widest animate-pulse flex items-center gap-2" id="scan-status-text">
-                                <i class="fa-solid fa-microscope fa-bounce"></i> Processando...
+
+                            <!-- Technical Inspection -->
+                            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-colors">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 border-b border-slate-800 pb-2"><i class="fa-solid fa-code mr-2"></i> Inspeção Técnica</h3>
+                                <div class="space-y-3 font-mono text-xs">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Magic Header:</span>
+                                        <span id="val-magic" class="text-yellow-300 font-bold bg-yellow-900/20 px-1 rounded">...</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Entropia (Conteúdo):</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                                <div id="mini-entropy-bar" class="h-full bg-blue-500 w-0"></div>
+                                            </div>
+                                            <span id="val-entropy" class="text-slate-300">0.00</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Hex Preview -->
+                                    <div class="mt-2">
+                                        <span class="text-[10px] text-slate-600 uppercase block mb-1">Hex Preview (Início)</span>
+                                        <div id="hex-preview" class="bg-black/40 p-2 rounded text-[10px] text-slate-400 font-mono break-all leading-tight border border-slate-800">
+                                            00 00 00 00 00 00 00 00
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <button onclick="cancelScan()" class="mt-8 px-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-full border border-red-500/30 transition-transform active:scale-95">
-                                INTERROMPER
-                            </button>
                         </div>
 
-                        <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this.files[0])">
+                        <!-- 3. Container Analysis (Deep Scan) -->
+                        <div id="container-analysis" class="hidden bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                            <div class="px-5 py-3 bg-slate-800/80 border-b border-slate-800 text-xs font-bold text-slate-300 uppercase flex justify-between items-center backdrop-blur">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-box-open"></i> Conteúdo Interno</span>
+                                <span id="files-count" class="bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">0</span>
+                            </div>
+                            <div id="container-list" class="max-h-60 overflow-y-auto p-3 space-y-1 custom-scroll bg-[#0b101b]">
+                                <!-- JS Generated -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Results Section -->
-                <div id="result-panel" class="hidden space-y-6 animate-slide-up">
-                    
-                    <!-- 1. Verdict Banner -->
-                    <div id="verdict-banner" class="glass-panel p-6 rounded-xl border-l-4 flex items-center justify-between transition-all relative overflow-hidden shadow-2xl">
-                        <div class="relative z-10 flex items-center gap-5">
-                            <div id="verdict-icon" class="w-16 h-16 rounded-xl flex items-center justify-center text-3xl bg-slate-800 shadow-inner"></div>
-                            <div>
-                                <h2 id="verdict-title" class="font-bold text-2xl text-white tracking-tight"></h2>
-                                <p id="verdict-desc" class="text-sm font-mono text-slate-300 mt-1"></p>
+                <!-- VIEW: URL SCANNER (MAXIMIZED v9.4 LOGIC) -->
+                <div id="view-url" class="hidden space-y-6 animate-fade-in">
+                    <div class="glass-panel rounded-xl p-8 border border-purple-500/20 relative overflow-hidden">
+                        <div class="absolute inset-0 url-grid opacity-10 pointer-events-none"></div>
+                        
+                        <div class="relative z-10 text-center mb-8">
+                            <div class="inline-flex items-center justify-center p-4 bg-slate-900 rounded-full border border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] mb-4 animate-network-pulse">
+                                <i class="fa-solid fa-spider text-3xl text-purple-400"></i>
                             </div>
-                        </div>
-                        <div class="text-right hidden sm:block relative z-10">
-                            <div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Risco Calculado</div>
-                            <div id="risk-score" class="text-3xl font-bold font-mono">0/10</div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Detailed Telemetry Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- File Metadata -->
-                        <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-colors">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 border-b border-slate-800 pb-2"><i class="fa-solid fa-file-lines mr-2"></i> Metadados do Arquivo</h3>
-                            <div class="space-y-3 font-mono text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-500">Nome:</span>
-                                    <span id="meta-name" class="text-white truncate max-w-[200px]">...</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-500">Tamanho Exato:</span>
-                                    <span id="meta-size" class="text-blue-300">...</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-500">Modificado em:</span>
-                                    <span id="meta-date" class="text-slate-300">...</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-500">MIME (Detectado):</span>
-                                    <span id="meta-mime" class="text-purple-300 font-bold">...</span>
-                                </div>
-                            </div>
+                            <h2 class="text-2xl font-bold text-white">URL Threat Hunter</h2>
+                            <p class="text-sm text-slate-400 font-mono mt-2">Engenharia Reversa e Detecção de Payload sem Download.</p>
                         </div>
 
-                        <!-- Technical Inspection -->
-                        <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-colors">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 border-b border-slate-800 pb-2"><i class="fa-solid fa-code mr-2"></i> Inspeção Técnica</h3>
-                            <div class="space-y-3 font-mono text-xs">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-500">Magic Header:</span>
-                                    <span id="val-magic" class="text-yellow-300 font-bold bg-yellow-900/20 px-1 rounded">...</span>
+                        <div class="relative z-10 space-y-4">
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-link text-slate-500 group-focus-within:text-purple-400 transition-colors"></i>
                                 </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-500">Entropia (Conteúdo):</span>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                                            <div id="mini-entropy-bar" class="h-full bg-blue-500 w-0"></div>
-                                        </div>
-                                        <span id="val-entropy" class="text-slate-300">0.00</span>
+                                <input type="url" id="url-input" placeholder="Cole o link suspeito aqui (ex: http://update-secure.com/invoice.exe)" 
+                                    class="url-input-glow w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent block pl-12 p-4 font-mono placeholder-slate-600 transition-all shadow-inner">
+                            </div>
+                            
+                            <button onclick="analyzeUrlRobust()" class="w-full bg-gradient-to-r from-purple-700 to-purple-900 hover:from-purple-600 hover:to-purple-800 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-purple-900/30 transition-all active:scale-95 flex items-center justify-center gap-3 border border-purple-500/30">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i> VARRER LINK (DEEP SCAN)
+                            </button>
+                        </div>
+
+                        <!-- URL Scan Progress Steps -->
+                        <div id="url-scan-steps" class="hidden mt-6 space-y-2">
+                            <div id="step-1" class="flex items-center gap-3 text-xs text-slate-500 font-mono opacity-50"><i class="fa-solid fa-circle text-[8px]"></i> Resolvendo DNS e Hostname...</div>
+                            <div id="step-2" class="flex items-center gap-3 text-xs text-slate-500 font-mono opacity-50"><i class="fa-solid fa-circle text-[8px]"></i> Verificando Reputação de TLD...</div>
+                            <div id="step-3" class="flex items-center gap-3 text-xs text-slate-500 font-mono opacity-50"><i class="fa-solid fa-circle text-[8px]"></i> Analisando Padrões de Obfuscação...</div>
+                            <div id="step-4" class="flex items-center gap-3 text-xs text-slate-500 font-mono opacity-50"><i class="fa-solid fa-circle text-[8px]"></i> Simulando Handshake de Rede...</div>
+                        </div>
+
+                        <div id="url-results" class="hidden mt-8 space-y-4 border-t border-slate-800 pt-6 animate-slide-up">
+                            <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700 flex items-center gap-4">
+                                <div class="flex-1">
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-xs font-bold text-slate-400 uppercase">Probabilidade de Ameaça</span>
+                                        <span id="url-score-text" class="text-xs font-mono font-bold text-white">0%</span>
+                                    </div>
+                                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                        <div id="url-score-bar" class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-600 w-0 transition-all duration-1000"></div>
                                     </div>
                                 </div>
-                                
-                                <!-- Hex Preview -->
-                                <div class="mt-2">
-                                    <span class="text-[10px] text-slate-600 uppercase block mb-1">Hex Preview (Início)</span>
-                                    <div id="hex-preview" class="bg-black/40 p-2 rounded text-[10px] text-slate-400 font-mono break-all leading-tight border border-slate-800">
-                                        00 00 00 00 00 00 00 00
-                                    </div>
+                                <div id="url-verdict-badge" class="px-3 py-1 rounded border text-xs font-bold uppercase hidden"></div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-700 hover:border-purple-500/30 transition-colors">
+                                    <h4 class="text-[10px] font-bold text-purple-400 uppercase mb-3 flex items-center gap-2"><i class="fa-solid fa-bug"></i> Vetores de Ataque</h4>
+                                    <ul id="url-structure-list" class="space-y-2 text-xs font-mono text-slate-300"></ul>
                                 </div>
+                                <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-700 hover:border-purple-500/30 transition-colors">
+                                    <h4 class="text-[10px] font-bold text-purple-400 uppercase mb-3 flex items-center gap-2"><i class="fa-solid fa-network-wired"></i> Rede & Reputação</h4>
+                                    <ul id="url-network-list" class="space-y-2 text-xs font-mono text-slate-300"></ul>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-black/30 p-3 rounded border border-slate-800 font-mono text-[10px] text-slate-500 break-all">
+                                <span class="text-purple-500 font-bold">ALVO:</span> <span id="url-parsed-data">...</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 3. Container Analysis (Deep Scan) -->
-                    <div id="container-analysis" class="hidden bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                        <div class="px-5 py-3 bg-slate-800/80 border-b border-slate-800 text-xs font-bold text-slate-300 uppercase flex justify-between items-center backdrop-blur">
-                            <span class="flex items-center gap-2"><i class="fa-solid fa-box-open"></i> Conteúdo Interno</span>
-                            <span id="files-count" class="bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">0</span>
+                <!-- VIEW: AUDIT (ORIGINAL v8.5) -->
+                <div id="view-audit" class="hidden">
+                    <div class="glass-panel p-8 rounded-xl border border-slate-700 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10">
+                            <i class="fa-solid fa-fingerprint text-9xl"></i>
                         </div>
-                        <div id="container-list" class="max-h-60 overflow-y-auto p-3 space-y-1 custom-scroll bg-[#0b101b]">
-                            <!-- JS Generated -->
+                        
+                        <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                            <i class="fa-solid fa-shield-virus text-blue-500"></i> Central de Segurança & Varredura
+                        </h2>
+                        <p class="text-slate-400 text-sm mb-6">Diagnóstico de sistema e varredura de diretórios em busca de malwares.</p>
+                        
+                        <!-- System Scan Section -->
+                        <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6 hover:border-yellow-500/50 transition-colors">
+                            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-folder-tree text-yellow-400"></i> Varredura Completa de Diretório (Recursivo)
+                            </h3>
+                            <p class="text-xs text-slate-400 mb-4">
+                                Selecione a pasta raiz do seu usuário, Downloads ou Documentos. O sistema irá varrer 
+                                <strong class="text-white">todas as subpastas</strong> automaticamente.
+                            </p>
+                            
+                            <div id="batch-scan-ui" class="hidden mb-4">
+                                <div class="flex justify-between text-xs font-mono text-slate-400 mb-1">
+                                    <span id="batch-status">Indexando...</span>
+                                    <span id="batch-count">0 arquivos</span>
+                                </div>
+                                <!-- Fast/No Transition Progress Bar -->
+                                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="batch-progress" class="h-full bg-yellow-500 w-0"></div>
+                                </div>
+                                <div id="batch-results" class="mt-3 max-h-48 overflow-y-auto custom-scroll space-y-1 text-xs font-mono"></div>
+                            </div>
+
+                            <button onclick="initSystemScan()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-yellow-900/20 transition-transform active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass"></i> SELECIONAR DIRETÓRIO RAIZ PARA SCAN
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="audit-list"></div>
+
+                        <div class="mt-8 pt-6 border-t border-slate-800 flex justify-end">
+                            <button onclick="runAudit()" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> Atualizar Status
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -277,7 +418,7 @@
 
             <!-- Right: Terminal / Log Output -->
             <div class="lg:col-span-1 h-full min-h-[500px] lg:min-h-0">
-                <div class="glass-panel rounded-xl h-full flex flex-col border border-slate-700/50 bg-[#05080f] shadow-2xl overflow-hidden">
+                <div class="glass-panel rounded-xl h-full flex flex-col border border-slate-700/50 bg-[#05080f] shadow-2xl overflow-hidden sticky top-24">
                     <div class="h-10 bg-slate-900 border-b border-slate-800 flex items-center px-4 justify-between shrink-0">
                         <span class="text-[11px] font-mono font-bold text-slate-400 flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-cyan-500"></i> SYSTEM KERNEL LOG
@@ -289,8 +430,9 @@
                         </div>
                     </div>
                     <div id="terminal-output" class="flex-grow p-4 font-mono text-[11px] overflow-y-auto text-slate-300 space-y-1.5 custom-scroll break-all leading-tight">
-                        <div class="text-blue-500 font-bold">Booting SecureScan Full Guardian v8.5...</div>
+                        <div class="text-blue-500 font-bold">Booting SecureScan Full Guardian v9.5...</div>
                         <div class="text-slate-500">Loading Recursive Scanning Module...</div>
+                        <div class="text-slate-500">Initializing URL Threat Hunter...</div>
                         <div class="text-slate-500">Optimizing UI Threads for Zero-Delay...</div>
                         <div class="text-green-500">[SYSTEM READY] Awaiting Target.</div>
                         <div class="animate-pulse text-cyan-500 mt-2">_</div>
@@ -298,64 +440,14 @@
                 </div>
             </div>
         </div>
-
-        <!-- VIEW: AUDIT -->
-        <div id="view-audit" class="hidden max-w-4xl mx-auto w-full animate-fade-in">
-            <div class="glass-panel p-8 rounded-xl border border-slate-700 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <i class="fa-solid fa-fingerprint text-9xl"></i>
-                </div>
-                
-                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-                    <i class="fa-solid fa-shield-virus text-blue-500"></i> Central de Segurança & Varredura
-                </h2>
-                <p class="text-slate-400 text-sm mb-6">Diagnóstico de sistema e varredura de diretórios em busca de malwares.</p>
-                
-                <!-- System Scan Section -->
-                <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-6 mb-6 hover:border-yellow-500/50 transition-colors">
-                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-folder-tree text-yellow-400"></i> Varredura Completa de Diretório (Recursivo)
-                    </h3>
-                    <p class="text-xs text-slate-400 mb-4">
-                        Selecione a pasta raiz do seu usuário, Downloads ou Documentos. O sistema irá varrer 
-                        <strong class="text-white">todas as subpastas</strong> automaticamente.
-                    </p>
-                    
-                    <div id="batch-scan-ui" class="hidden mb-4">
-                        <div class="flex justify-between text-xs font-mono text-slate-400 mb-1">
-                            <span id="batch-status">Indexando...</span>
-                            <span id="batch-count">0 arquivos</span>
-                        </div>
-                        <!-- Fast/No Transition Progress Bar -->
-                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                            <div id="batch-progress" class="h-full bg-yellow-500 w-0"></div>
-                        </div>
-                        <div id="batch-results" class="mt-3 max-h-48 overflow-y-auto custom-scroll space-y-1 text-xs font-mono"></div>
-                    </div>
-
-                    <button onclick="initSystemScan()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-yellow-900/20 transition-transform active:scale-95 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass"></i> SELECIONAR DIRETÓRIO RAIZ PARA SCAN
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="audit-list"></div>
-
-                <div class="mt-8 pt-6 border-t border-slate-800 flex justify-end">
-                    <button onclick="runAudit()" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-rotate-right"></i> Atualizar Status
-                    </button>
-                </div>
-            </div>
-        </div>
-        
     </main>
 
     <footer class="text-center py-8 text-[10px] text-slate-600 font-mono relative z-10 border-t border-slate-900/50 mt-auto bg-slate-950">
-        <p class="mb-2">SECURESCAN GUARDIAN V8.5 | HIGH-PERFORMANCE RECURSIVE ENGINE</p>
+        <p class="mb-2">SECURESCAN GUARDIAN V9.5 | HIGH-PERFORMANCE RECURSIVE ENGINE</p>
         <p class="opacity-50">Dados processados localmente. Nenhum arquivo deixa seu dispositivo.</p>
     </footer>
 
-    <!-- WORKER SCRIPT -->
+    <!-- WORKER SCRIPT (v8.5 ORIGINAL) -->
     <script id="worker-code" type="javascript/worker">
         self.onmessage = async function(e) {
             const { file, type, context } = e.data;
@@ -501,7 +593,7 @@
                         overlapBuffer = textChunk.slice(-2000);
                         offset += chunkSize;
                         
-                        // PROGRESS UPDATE (Jumpier logic for less lag feeling)
+                        // PROGRESS UPDATE (Jumpier logic for less lag feeling - v8.5 Logic)
                         if (context !== 'batch') {
                             const percent = Math.round((offset / totalSize) * 100);
                             // Report only every 10% or at 100% to create the "jump" effect user wanted
@@ -590,7 +682,17 @@
             batchStatus: document.getElementById('batch-status'),
             batchCount: document.getElementById('batch-count'),
             batchProgress: document.getElementById('batch-progress'),
-            batchResults: document.getElementById('batch-results')
+            batchResults: document.getElementById('batch-results'),
+            // URL Scan UI (NEW)
+            urlInput: document.getElementById('url-input'),
+            urlResults: document.getElementById('url-results'),
+            urlScoreBar: document.getElementById('url-score-bar'),
+            urlScoreText: document.getElementById('url-score-text'),
+            urlVerdictBadge: document.getElementById('url-verdict-badge'),
+            urlStructureList: document.getElementById('url-structure-list'),
+            urlNetworkList: document.getElementById('url-network-list'),
+            urlParsedData: document.getElementById('url-parsed-data'),
+            urlScanSteps: document.getElementById('url-scan-steps')
         };
 
         let worker = null;
@@ -730,23 +832,38 @@
         // --- SINGLE FILE LOGIC ---
 
         function switchTab(tab) {
-            const scanView = document.getElementById('view-scanner');
-            const auditView = document.getElementById('view-audit');
-            const btnScan = document.getElementById('tab-scanner');
-            const btnAudit = document.getElementById('tab-audit');
+            const views = {
+                'scanner': document.getElementById('view-scanner'),
+                'url': document.getElementById('view-url'),
+                'audit': document.getElementById('view-audit')
+            };
+            const btns = {
+                'scanner': document.getElementById('tab-scanner'),
+                'url': document.getElementById('tab-url'),
+                'audit': document.getElementById('tab-audit')
+            };
 
-            if (tab === 'scanner') {
-                scanView.classList.remove('hidden');
-                auditView.classList.add('hidden');
-                btnScan.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2";
-                btnAudit.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2";
-            } else {
-                scanView.classList.add('hidden');
-                auditView.classList.remove('hidden');
-                btnScan.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2";
-                btnAudit.className = "px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2";
-                runAudit();
+            // Hide all views
+            Object.values(views).forEach(v => {
+                if(v) v.classList.add('hidden');
+            });
+            // Reset buttons
+            Object.values(btns).forEach(b => {
+                if(b) b.className = "px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2";
+            });
+
+            // Show selected
+            if(views[tab]) views[tab].classList.remove('hidden');
+            
+            // Highlight button
+            if(btns[tab]) {
+                let activeClass = "px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/30 flex items-center gap-2";
+                if (tab === 'url') activeClass = "px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all bg-purple-600 text-white shadow-lg shadow-purple-900/30 flex items-center gap-2";
+                btns[tab].className = activeClass;
             }
+
+            if (tab === 'audit') runAudit();
+            log(`Módulo Ativo: ${tab.toUpperCase()}`, 'system');
         }
 
         function log(msg, type = 'info') {
@@ -937,7 +1054,149 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // --- AUDIT SYSTEM ---
+        // --- URL ANALYSIS LOGIC (IMPORTED FROM ROBUST VERSION) ---
+        async function analyzeUrlRobust() {
+            const rawUrl = UI.urlInput.value.trim();
+            if (!rawUrl) { alert("Insira uma URL."); return; }
+
+            // Reset UI
+            UI.urlResults.classList.remove('hidden');
+            UI.urlStructureList.innerHTML = '';
+            UI.urlNetworkList.innerHTML = '';
+            UI.urlVerdictBadge.className = 'hidden';
+            UI.urlScoreBar.style.width = '0%';
+            UI.urlScoreText.innerText = '0%';
+            UI.urlScanSteps.classList.remove('hidden');
+            
+            // Visual Steps Animation
+            const steps = ['step-1','step-2','step-3','step-4'];
+            steps.forEach(s => {
+                const el = document.getElementById(s);
+                el.className = "flex items-center gap-3 text-xs text-slate-500 font-mono opacity-50";
+                el.innerHTML = el.innerHTML.replace('fa-check text-green-400', 'fa-circle');
+            });
+
+            log(`Iniciando análise forense da URL...`, 'system');
+            
+            let riskScore = 0;
+            let triggers = [];
+            let urlObj = null;
+
+            // Simulate step-by-step processing for "Robust" feel
+            await highlightStep('step-1');
+            
+            try {
+                if (rawUrl.startsWith('data:') || rawUrl.startsWith('javascript:')) {
+                    throw new Error("Protocolo Malicioso Detectado");
+                }
+                urlObj = new URL(rawUrl);
+                
+                // --- Structure Analysis ---
+                if (urlObj.protocol === 'http:') {
+                    addUrlResult('structure', 'Protocolo Inseguro (HTTP)', 'danger');
+                    riskScore += 15; triggers.push('HTTP');
+                } else {
+                    addUrlResult('structure', 'Criptografia HTTPS', 'success');
+                }
+
+                const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+                if (ipRegex.test(urlObj.hostname)) {
+                    addUrlResult('structure', 'Acesso direto por IP (Botnet/C2)', 'danger');
+                    riskScore += 45; triggers.push('IP Direto');
+                }
+
+                await highlightStep('step-2');
+                
+                const riskyTLDs = ['.xyz', '.top', '.club', '.info', '.tk', '.cn', '.ru', '.zip', '.mov'];
+                if (riskyTLDs.some(t => urlObj.hostname.endsWith(t))) {
+                    addUrlResult('network', 'TLD de Baixa Reputação', 'warning');
+                    riskScore += 25; triggers.push('TLD Suspeito');
+                } else {
+                    addUrlResult('network', 'TLD Comum/Padrão', 'success');
+                }
+
+                await highlightStep('step-3');
+
+                const malwareExts = ['.exe', '.bat', '.scr', '.vbs', '.apk', '.jar', '.msi'];
+                if (malwareExts.some(ext => urlObj.pathname.toLowerCase().endsWith(ext))) {
+                    addUrlResult('structure', 'Link direto para Executável', 'danger');
+                    riskScore += 40; triggers.push('Executável');
+                }
+
+                // Homograph check
+                if (/[^\u0000-\u007f]/.test(urlObj.hostname)) {
+                    addUrlResult('structure', 'Caracteres Unicode (Homograph Attack)', 'danger');
+                    riskScore += 35; triggers.push('Homógrafo');
+                }
+
+                UI.urlParsedData.innerHTML = `<span class="text-blue-400">HOST:</span> ${urlObj.hostname} | <span class="text-blue-400">PATH:</span> ${urlObj.pathname}`;
+
+            } catch (e) {
+                addUrlResult('structure', 'URL Malformada ou Maliciosa', 'danger');
+                riskScore += 50;
+            }
+
+            await highlightStep('step-4');
+
+            // --- Network Simulation ---
+            try {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 2000); // 2s timeout
+                await fetch(rawUrl, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+                clearTimeout(id);
+                addUrlResult('network', 'Servidor Ativo (Handshake OK)', 'success');
+            } catch (err) {
+                if (err.name === 'AbortError') addUrlResult('network', 'Timeout: Servidor Lento/Offline', 'warning');
+                else addUrlResult('network', 'Falha de Rede (Possível Blacklist)', 'danger');
+            }
+
+            riskScore = Math.min(riskScore, 100);
+            updateUrlScore(riskScore, triggers);
+        }
+
+        async function highlightStep(id) {
+            const el = document.getElementById(id);
+            el.className = "flex items-center gap-3 text-xs text-purple-400 font-mono font-bold opacity-100 transition-all";
+            el.innerHTML = el.innerHTML.replace('fa-circle', 'fa-spinner fa-spin');
+            await new Promise(r => setTimeout(r, 600)); // Artificial delay for effect
+            el.innerHTML = el.innerHTML.replace('fa-spinner fa-spin', 'fa-check');
+            el.className = "flex items-center gap-3 text-xs text-green-400 font-mono opacity-100";
+        }
+
+        function addUrlResult(listId, text, type) {
+            const list = document.getElementById(`url-${listId}-list`);
+            const li = document.createElement('li');
+            let color = type === 'danger' ? 'text-red-400' : type === 'warning' ? 'text-yellow-400' : 'text-green-400';
+            let icon = type === 'danger' ? 'fa-triangle-exclamation' : type === 'warning' ? 'fa-circle-exclamation' : 'fa-check';
+            li.innerHTML = `<i class="fa-solid ${icon} w-4"></i> <span class="${color}">${text}</span>`;
+            list.appendChild(li);
+        }
+
+        function updateUrlScore(score, triggers) {
+            const bar = UI.urlScoreBar;
+            const text = UI.urlScoreText;
+            const badge = UI.urlVerdictBadge;
+            
+            bar.style.width = `${score}%`;
+            text.innerText = `${score}%`;
+            badge.classList.remove('hidden', 'bg-red-500/20', 'text-red-400', 'bg-yellow-500/20', 'text-yellow-400', 'bg-green-500/20', 'text-green-400');
+
+            if (score >= 70) {
+                badge.innerText = "MALICIOSO";
+                badge.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/50');
+                log('AMEAÇA DETECTADA NO LINK', 'danger');
+            } else if (score >= 30) {
+                badge.innerText = "SUSPEITO";
+                badge.classList.add('bg-yellow-500/20', 'text-yellow-400', 'border-yellow-500/50');
+                log('LINK COM POTENCIAL RISCO', 'warning');
+            } else {
+                badge.innerText = "SEGURO (ESTÁTICO)";
+                badge.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
+                log('LINK COM ESTRUTURA LIMPA', 'success');
+            }
+        }
+
+        // --- AUDIT SYSTEM (ORIGINAL v8.5) ---
         async function runAudit() {
             const list = document.getElementById('audit-list');
             list.innerHTML = '<div class="col-span-2 text-center text-cyan-400 py-4"><i class="fa-solid fa-circle-notch fa-spin"></i> Auditando hardware...</div>';
